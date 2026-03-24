@@ -1,0 +1,62 @@
+{
+  "run": {
+    "generated_at": "2026-03-21T17:18:53.038108+00:00",
+    "input_dir": "E:\\vsc\\audio-metadata-mvp\\examples\\fixtures",
+    "output_path": "E:\\vsc\\audio-metadata-mvp\\examples\\example-output.json",
+    "recursive": false,
+    "total_files": 2,
+    "ok_count": 0,
+    "partial_count": 1,
+    "failed_count": 1
+  },
+  "files": [
+    {
+      "status": "failed",
+      "file_name": "broken.mp3",
+      "source_path": "E:\\vsc\\audio-metadata-mvp\\examples\\fixtures\\broken.mp3",
+      "file_format": "mp3",
+      "technical": {
+        "duration_sec": null,
+        "sample_rate_hz": null,
+        "channels": null
+      },
+      "features": {
+        "loudness_lufs": null,
+        "tempo_bpm": null,
+        "spectral_centroid_hz": null,
+        "rms": null
+      },
+      "errors": [
+        {
+          "stage": "technical_metadata",
+          "message": "mutagen is required to read technical metadata for this format. Install dependencies from requirements.txt.",
+          "error_type": "RuntimeError"
+        }
+      ]
+    },
+    {
+      "status": "partial",
+      "file_name": "demo_tone.wav",
+      "source_path": "E:\\vsc\\audio-metadata-mvp\\examples\\fixtures\\demo_tone.wav",
+      "file_format": "wav",
+      "technical": {
+        "duration_sec": 1.0,
+        "sample_rate_hz": 22050,
+        "channels": 1
+      },
+      "features": {
+        "loudness_lufs": null,
+        "tempo_bpm": null,
+        "spectral_centroid_hz": null,
+        "rms": null
+      },
+      "errors": [
+        {
+          "stage": "audio_decode",
+          "message": "Missing optional audio feature dependencies: numpy, librosa, pyloudnorm. Install requirements.txt for feature extraction.",
+          "error_type": "RuntimeError"
+        }
+      ]
+    }
+  ]
+}

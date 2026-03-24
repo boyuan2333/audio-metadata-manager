@@ -1,0 +1,27 @@
+# Python cache and virtualenvs
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+
+# Local environment files
+.env
+.env.*
+
+# Generated outputs and review working copies
+out/
+tests_tmp/
+
+# Real audio/material libraries and local scratch media
+audio/
+
+# Temporary directories created during local runs
+tmp*/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db

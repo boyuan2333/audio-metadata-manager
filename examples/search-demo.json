@@ -1,0 +1,179 @@
+﻿{
+  "run": {
+    "generated_at": "2026-03-22T10:00:00+00:00",
+    "input_dir": "E:\\vsc\\audio-metadata-mvp\\examples\\search-demo-source",
+    "output_path": "E:\\vsc\\audio-metadata-mvp\\examples\\search-demo.json",
+    "recursive": false,
+    "total_files": 6,
+    "ok_count": 6,
+    "partial_count": 0,
+    "failed_count": 0
+  },
+  "files": [
+    {
+      "status": "ok",
+      "file_name": "summer_loop_128.wav",
+      "source_path": "E:\\audio\\summer_loop_128.wav",
+      "file_format": "wav",
+      "tempo_applicable": true,
+      "is_loop": true,
+      "duration_bucket": "short",
+      "brightness": "bright",
+      "technical": {
+        "duration_sec": 8.2,
+        "sample_rate_hz": 48000,
+        "channels": 2
+      },
+      "features": {
+        "loudness_lufs": -12.1,
+        "tempo_bpm": 128.2,
+        "tempo_confidence": 0.73,
+        "tempo_quality": "high",
+        "spectral_centroid_hz": 4120.3,
+        "rms": 0.21
+      },
+      "tags": ["loop", "summer", "uplifting"],
+      "mood": ["bright", "energetic"],
+      "role": "music",
+      "errors": []
+    },
+    {
+      "status": "ok",
+      "file_name": "pulse_bass_loop_110.wav",
+      "source_path": "E:\\audio\\pulse_bass_loop_110.wav",
+      "file_format": "wav",
+      "tempo_applicable": true,
+      "is_loop": true,
+      "duration_bucket": "medium",
+      "brightness": "balanced",
+      "technical": {
+        "duration_sec": 12.0,
+        "sample_rate_hz": 44100,
+        "channels": 2
+      },
+      "features": {
+        "loudness_lufs": -11.6,
+        "tempo_bpm": 110.0,
+        "tempo_confidence": 0.41,
+        "tempo_quality": "medium",
+        "spectral_centroid_hz": 1620.6,
+        "rms": 0.24
+      },
+      "tags": ["loop", "bass", "pulse"],
+      "mood": "tense",
+      "density": "dense",
+      "errors": []
+    },
+    {
+      "status": "ok",
+      "file_name": "short_sweep_up.aif",
+      "source_path": "E:\\audio\\short_sweep_up.aif",
+      "file_format": "aif",
+      "tempo_applicable": false,
+      "is_loop": false,
+      "duration_bucket": "micro",
+      "brightness": "bright",
+      "technical": {
+        "duration_sec": 0.48,
+        "sample_rate_hz": 44100,
+        "channels": 2
+      },
+      "features": {
+        "loudness_lufs": -20.3,
+        "tempo_bpm": null,
+        "tempo_confidence": null,
+        "tempo_quality": "not_applicable",
+        "spectral_centroid_hz": 4890.1,
+        "rms": 0.09
+      },
+      "tags": ["sweep", "transition"],
+      "role": "fx",
+      "errors": [
+        {
+          "stage": "tempo_bpm",
+          "message": "tempo_bpm left null: audio too short for stable estimation (0.48s < 3.0s).",
+          "error_type": "TempoEstimationNotApplicable"
+        }
+      ]
+    },
+    {
+      "status": "ok",
+      "file_name": "cinematic_horn_rise.wav",
+      "source_path": "E:\\audio\\cinematic_horn_rise.wav",
+      "file_format": "wav",
+      "tempo_applicable": false,
+      "is_loop": false,
+      "duration_bucket": "short",
+      "brightness": "dark",
+      "technical": {
+        "duration_sec": 6.4,
+        "sample_rate_hz": 44100,
+        "channels": 2
+      },
+      "features": {
+        "loudness_lufs": -15.8,
+        "tempo_bpm": null,
+        "tempo_confidence": 0.79,
+        "tempo_quality": "not_applicable",
+        "spectral_centroid_hz": 1311.4,
+        "rms": 0.17
+      },
+      "tags": ["horn", "cinematic", "rise"],
+      "texture": "brassy",
+      "domain": "trailer",
+      "errors": [
+        {
+          "stage": "tempo_bpm",
+          "message": "tempo_bpm left null: estimated tempo 224.694 BPM is outside the supported range.",
+          "error_type": "TempoEstimationNotApplicable"
+        }
+      ]
+    },
+    {
+      "status": "ok",
+      "file_name": "airy_pad_phrase.flac",
+      "source_path": "E:\\audio\\airy_pad_phrase.flac",
+      "file_format": "flac",
+      "tempo_applicable": true,
+      "is_loop": false,
+      "duration_bucket": "long",
+      "brightness": "bright",
+      "technical": {
+        "duration_sec": 74.2,
+        "sample_rate_hz": 48000,
+        "channels": 2
+      },
+      "features": {
+        "loudness_lufs": -16.4,
+        "tempo_bpm": 96.0,
+        "tempo_confidence": 0.35,
+        "tempo_quality": "medium",
+        "spectral_centroid_hz": 3650.0,
+        "rms": 0.14
+      },
+      "tags": ["pad", "airy", "phrase"],
+      "mood": ["dreamy", "open"],
+      "errors": []
+    },
+    {
+      "status": "ok",
+      "file_name": "legacy_fx_hit.wav",
+      "source_path": "E:\\audio\\legacy_fx_hit.wav",
+      "file_format": "wav",
+      "technical": {
+        "duration_sec": 0.91,
+        "sample_rate_hz": 44100,
+        "channels": 1
+      },
+      "features": {
+        "loudness_lufs": -18.9,
+        "tempo_bpm": null,
+        "spectral_centroid_hz": 6220.7,
+        "rms": 0.12
+      },
+      "tags": ["legacy", "hit", "fx"],
+      "domain": "sfx",
+      "errors": []
+    }
+  ]
+}
