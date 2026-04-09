@@ -6,6 +6,7 @@ import main as index_command
 import review_metadata as review_command
 import search_metadata as search_command
 import search_similar as similar_command
+import nl_query as nl_query_command
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -77,6 +78,13 @@ def build_parser() -> argparse.ArgumentParser:
         parents=[similar_command.build_parser(add_help=False)],
     )
     similar_parser.set_defaults(handler=similar_command.run, validator=similar_command.validate_args)
+
+    nl_query_parser = subparsers.add_parser(
+        "nl-query",
+        help="Search with natural language query.",
+        parents=[nl_query_command.build_parser(add_help=False)],
+    )
+    nl_query_parser.set_defaults(handler=nl_query_command.run, validator=nl_query_command.validate_args)
 
     return parser
 
