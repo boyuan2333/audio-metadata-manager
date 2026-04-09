@@ -1,20 +1,21 @@
-﻿# Audio Metadata MVP v0.1-b3
+﻿# Audio Metadata MVP v0.1-b4
 
-`audio-metadata-mvp` is a local single-user audio sample manager core. It scans a folder of audio files, writes schema v1 JSON, supports minimal manual review overrides, searches that JSON with explicit metadata filters, performs lightweight similarity retrieval from a reference audio file after candidate filtering, and now adds a minimal batch-review workflow for real libraries.
+`audio-metadata-mvp` is a local single-user audio sample manager core. It scans a folder of audio files, writes schema v1 JSON, supports minimal manual review overrides, searches that JSON with explicit metadata filters, **accepts natural language queries**, performs lightweight similarity retrieval from a reference audio file after candidate filtering, and adds a minimal batch-review workflow for real libraries.
 
-v0.1-b3 intentionally stays small:
+v0.1-b4 intentionally stays small:
 
 - Local only
 - Single user
 - JSON storage
 - Explicit field search
+- **Natural language query (v0.1-b4 new)**
 - Lightweight similar retrieval
 - Minimal `review.overrides` editing
 - Batch review presets, grouped candidate discovery, and finer review stats
 
-It does not include a database, vector store, natural language search, UI, team workflows, cloud sync, segment analysis, retrieval overrides, or automatic `model_outputs` classification.
+It does not include a database, vector store, UI, team workflows, cloud sync, segment analysis, retrieval overrides, or automatic `model_outputs` classification.
 
-## v0.1-b3 Capabilities
+## v0.1-b4 Capabilities
 
 - `index`: scan a local directory and export schema v1 JSON
 - `review`: write minimal manual overrides into `review.overrides`
@@ -22,6 +23,7 @@ It does not include a database, vector store, natural language search, UI, team 
 - `review-candidates`: list high-value records grouped by review rule, with recommended next actions
 - `review-stats`: summarize current override coverage, note prefixes, inferred sources, and common reviewed filename keywords
 - `search`: query the exported JSON with explicit field filters
+- **`nl-query`: search with natural language queries (v0.1-b4 new)**
 - `similar`: filter candidates, then rank them against a reference audio file using current numeric metadata
 - Stable schema v1 with reserved space for future `segments`, `model_outputs`, and `retrieval` expansion
 
@@ -177,6 +179,29 @@ Minimal examples:
 python app.py review-stats --input ./out/library-reviewed.json
 python app.py review-stats --input ./out/library-reviewed.json --top-notes 10 --top-note-prefixes 10 --top-sources 8 --top-combos 5 --top-keywords 8
 ```
+
+### NL Query (v0.1-b4 new)
+
+Search using natural language instead of explicit filters. The parser converts your query into structured intent and reuses the existing search execution:
+
+```bash
+python app.py nl-query --query "dark drum loops around 128 bpm" --input ./out/library.json
+python app.py nl-query --query "bright percussion one shots" --input ./out/library.json
+python app.py nl-query --query "slow loops under 90 bpm" --input ./out/library.json
+python app.py nl-query --query "dark sounds with no tempo" --input ./out/library.json
+```
+
+**Supported query patterns:**
+- Brightness: `dark`, `balanced`, `bright`, `very bright`
+- Loop state: `loop(s)`, `one shot(s)`, `non-loop`, `fill(s)`
+- Tempo: `no tempo`, `without tempo`, `no bpm`
+- BPM: `X bpm`, `around X bpm`, `under X bpm`, `over X bpm`, `between X and Y bpm`
+- Unrecognized words fall back to keyword search
+
+**Output includes:**
+- Matched record count
+- Parsed intent (for inspection)
+- Matched fields per record
 
 ### Search
 
