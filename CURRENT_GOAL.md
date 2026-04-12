@@ -1,63 +1,50 @@
-﻿# CURRENT_GOAL.md
+# CURRENT_GOAL.md
 
 ## Version
-- Current repo version: `v0.1-b4` ✅
-- Planned next milestone: `v0.1-b5` (TBD)
+- Current repo version: `v0.1-b4` ✅ **RELEASED** (local main, pending remote push)
+- Planned next milestone: `v0.1-b5` (Auto Tagging / Model Outputs)
 
-## Goal (v0.1-b4) — COMPLETED
-- Build the first minimal natural-language query layer that converts user text into structured search intent on top of the existing search system.
+## Goal (v0.1-b5) — Auto Tagging Layer
+Build the first minimal automatic tagging layer that populates `model_outputs` fields based on audio features.
 
-## Already True In The Repo (v0.1-b4)
+## Already True In The Repo (v0.1-b4 delivered)
 - Audio directories can be indexed into schema v1 JSON.
 - Manual review overrides can correct a small set of derived and tempo fields.
 - `review-batch`, `review-candidates`, and `review-stats` support a lightweight manual cleanup workflow.
 - `search` already supports explicit filters such as keyword, loop state, brightness, tempo applicability, tempo quality, BPM range, duration range, and status.
-- **`nl-query` accepts natural language queries and converts them to structured search intent.**
+- `nl-query` accepts natural language queries and converts them to structured search intent.
 - `similar` already performs lightweight numeric-metadata ranking after candidate filtering.
 - Schema normalization preserves reserved `retrieval`, `model_outputs`, and `segments` fields, but no automatic semantic pipeline populates them.
 - Tests cover schema normalization, override behavior, batch review tools, NL query parser, and basic search/similar smoke paths.
 
-## What's No Longer Missing (v0.1-b4 delivered)
-- ~~No user-facing free-text query path.~~ → **Delivered: `nl-query` command**
-- ~~No query-to-intent parser that maps plain language onto existing structured filters.~~ → **Delivered: `parse_nl_query()` with narrow vocabulary**
-- ~~No eval set for natural-language search behavior.~~ → **Delivered: `tests/test_nl_query.py` with 5 test cases**
+## What's Missing (v0.1-b5 target)
+- No automatic classifier that fills `model_outputs.is_dark`, `model_outputs.is_bright`, etc.
+- No feature-based auto-tagging for mood, energy, or instrumentation.
+- No batch auto-tag command.
 
-## Still Missing (future milestones)
-- No vector retrieval, embedding index, or semantic ranker.
-- No UI.
-- No automatic classifier that fills `model_outputs` or semantic `retrieval` fields.
-
-## Explicitly Out Of Scope (unchanged)
+## Explicitly Out Of Scope (v0.1-b5)
+- Vector DBs, embeddings, ANN search, rerankers, or full semantic retrieval.
 - UI, web app, or desktop app work.
 - Cloud sync, shared state, or multi-user features.
-- Vector DBs, embeddings, ANN search, rerankers, or full semantic retrieval.
-- Automatic tagging or classifier pipelines for `model_outputs` or `retrieval`.
-- Schema v2, large review-system changes, or extractor rewrites.
+- Schema v2 changes.
 
-## Acceptance Criteria (v0.1-b4) — ALL MET ✅
-- A plain-text query can be converted into structured intent using current filter concepts only. ✅
-- The first version supports only a narrow, documented safe subset of filters already present in `search`. ✅
-- The first version does not depend on or parse `retrieval.*` or `model_outputs.*`. ✅
-- The parser output is explainable enough to inspect in tests or CLI output. ✅
-- Search execution still flows through the existing search system. ✅
-- Unknown wording does not crash the command. ✅
-- No schema change is required for the feature. ✅
-- Automated tests cover representative success and fallback cases. ✅
+## Acceptance Criteria (v0.1-b5)
+- A simple feature-based classifier can populate `model_outputs.is_dark` / `is_bright` based on spectral features.
+- The classifier is deterministic and explainable (no black-box ML).
+- Tests cover representative audio samples.
+- A new `auto-tag` command applies the classifier to indexed audio.
+- No schema change is required.
 
-## Example Eval Queries (all tested)
-- `dark drum loops around 128 bpm` ✅
-- `bright percussion one shots` ✅
-- `show non-loop fills` ✅
-- `slow loops under 90 bpm` ✅
-- `dark sounds with no tempo` ✅
-- `show shaker loops between 120 and 130 bpm` ✅
-- `show failed files` ✅
-- `find crash one shots` ✅
+## Example Auto-Tag Rules (to be implemented)
+- `is_dark`: low spectral centroid, minor mode preference
+- `is_bright`: high spectral centroid, major mode preference
+- `is_energetic`: high RMS energy, fast tempo
+- `is_calm`: low RMS energy, slow tempo
 
-## Suggested Task Sequence — COMPLETED ✅
-1. Define the smallest intent shape that maps only to existing `search` filters. ✅
-2. Write parser tests for the example queries above plus a few unsupported-wording cases. ✅
-3. Implement a minimal deterministic parser with a narrow vocabulary and safe fallback behavior. ✅
-4. Wire the parser into one small entry path that reuses existing search execution. ✅
-5. Verify the new path with tests and one or two representative CLI examples. ✅
-6. Update `README.md` and this file only after the code behavior exists. ✅
+## Suggested Task Sequence (v0.1-b5)
+1. Define feature thresholds for `is_dark` / `is_bright` (spectral centroid percentiles).
+2. Write tests for the auto-tag classifier.
+3. Implement `auto_tag_audio()` function in `audio_metadata/`.
+4. Add `auto-tag` CLI command to `app.py`.
+5. Verify with a small test dataset.
+6. Update README and this file.
