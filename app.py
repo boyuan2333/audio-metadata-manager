@@ -7,16 +7,18 @@ import review_metadata as review_command
 import search_metadata as search_command
 import search_similar as similar_command
 import nl_query as nl_query_command
+import auto_tag_cli as auto_tag_command
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="app.py",
         description=(
-            "Local single-user audio sample manager core (v0.1-b3). "
+            "Local single-user audio sample manager core (v0.1-b5). "
             "Index audio into schema v1 JSON, review overrides, search by explicit fields, "
             "run lightweight similar retrieval, batch review fixes, review candidate discovery, "
-            "review workflow presets, grouped review candidate discovery, and finer review stats."
+            "review workflow presets, grouped review candidate discovery, finer review stats, "
+            "natural language query, and objective auto-tagging."
         ),
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -85,6 +87,13 @@ def build_parser() -> argparse.ArgumentParser:
         parents=[nl_query_command.build_parser(add_help=False)],
     )
     nl_query_parser.set_defaults(handler=nl_query_command.run, validator=nl_query_command.validate_args)
+
+    auto_tag_parser = subparsers.add_parser(
+        "auto-tag",
+        help="Auto-tag audio files with objective feature-based labels.",
+        parents=[auto_tag_command.build_parser(add_help=False)],
+    )
+    auto_tag_parser.set_defaults(handler=auto_tag_command.run, validator=auto_tag_command.validate_args)
 
     return parser
 
