@@ -1,21 +1,22 @@
-﻿# Audio Metadata MVP v0.1-b4
+﻿# Audio Metadata MVP v0.1-b5
 
-`audio-metadata-mvp` is a local single-user audio sample manager core. It scans a folder of audio files, writes schema v1 JSON, supports minimal manual review overrides, searches that JSON with explicit metadata filters, **accepts natural language queries**, performs lightweight similarity retrieval from a reference audio file after candidate filtering, and adds a minimal batch-review workflow for real libraries.
+`audio-metadata-mvp` is a local single-user audio sample manager core. It scans a folder of audio files, writes schema v1 JSON, supports minimal manual review overrides, searches that JSON with explicit metadata filters, **accepts natural language queries**, **auto-tags audio with objective features**, performs lightweight similarity retrieval from a reference audio file after candidate filtering, and adds a minimal batch-review workflow for real libraries.
 
-v0.1-b4 intentionally stays small:
+v0.1-b5 intentionally stays small:
 
 - Local only
 - Single user
 - JSON storage
 - Explicit field search
-- **Natural language query (v0.1-b4 new)**
+- Natural language query (v0.1-b4)
+- **Objective auto-tagging (v0.1-b5 new)**
 - Lightweight similar retrieval
 - Minimal `review.overrides` editing
 - Batch review presets, grouped candidate discovery, and finer review stats
 
-It does not include a database, vector store, UI, team workflows, cloud sync, segment analysis, retrieval overrides, or automatic `model_outputs` classification.
+It does not include a database, vector store, UI, team workflows, cloud sync, segment analysis, retrieval overrides, or ML-based subjective classification.
 
-## v0.1-b4 Capabilities
+## v0.1-b5 Capabilities
 
 - `index`: scan a local directory and export schema v1 JSON
 - `review`: write minimal manual overrides into `review.overrides`
@@ -23,9 +24,10 @@ It does not include a database, vector store, UI, team workflows, cloud sync, se
 - `review-candidates`: list high-value records grouped by review rule, with recommended next actions
 - `review-stats`: summarize current override coverage, note prefixes, inferred sources, and common reviewed filename keywords
 - `search`: query the exported JSON with explicit field filters
-- **`nl-query`: search with natural language queries (v0.1-b4 new)**
+- `nl-query`: search with natural language queries (v0.1-b4)
+- **`auto-tag`: auto-tag audio files with objective feature-based labels (v0.1-b5 new)**
 - `similar`: filter candidates, then rank them against a reference audio file using current numeric metadata
-- Stable schema v1 with reserved space for future `segments`, `model_outputs`, and `retrieval` expansion
+- Stable schema v1 with reserved space for future `segments`, `model_outputs.auto_tags`, and `retrieval` expansion
 
 ## Project Layout
 
@@ -180,7 +182,7 @@ python app.py review-stats --input ./out/library-reviewed.json
 python app.py review-stats --input ./out/library-reviewed.json --top-notes 10 --top-note-prefixes 10 --top-sources 8 --top-combos 5 --top-keywords 8
 ```
 
-### NL Query (v0.1-b4 new)
+### NL Query (v0.1-b4)
 
 Search using natural language instead of explicit filters. The parser converts your query into structured intent and reuses the existing search execution:
 
@@ -202,6 +204,89 @@ python app.py nl-query --query "dark sounds with no tempo" --input ./out/library
 - Matched record count
 - Parsed intent (for inspection)
 - Matched fields per record
+
+### Auto-Tag (v0.1-b5 new)
+
+Automatically tag audio files with objective, physically-measurable feature labels. All tags are deterministic and explainable (no ML black box):
+
+```bash
+# Preview mode (no writing)
+python app.py auto-tag ./audio/samples --dry-run -v
+
+# Batch tag and output to JSON
+python app.py auto-tag ./audio/samples -o tags.json -v
+
+# Process only WAV files
+python app.py auto-tag ./audio/samples --filter "*.wav" -o tags.json
+
+# Custom sample rate (default: 22050 Hz)
+python app.py auto-tag ./audio/samples -s 44100 -o tags.json
+
+# Access audio on Windows host from WSL2
+python app.py auto-tag /mnt/c/Users/bo/Music/Samples -o tags.json -v
+```
+
+**Objective feature tags (v0.1-b5):**
+| Tag | Physical basis | Threshold |
+|-----|----------------|-----------|
+| `is_percussive` | HPSS separation (FitzGerald 2010) | P/H ratio > 1.5 |
+| `is_sustained` | HPSS separation | H/P ratio > 1.5 |
+| `wide_spectrum` | Spectral bandwidth | > 3000 Hz |
+| `narrow_spectrum` | Spectral bandwidth | < 1000 Hz |
+| `is_bright` | Spectral centroid | > 2000 Hz |
+| `is_dark` | Spectral centroid | < 500 Hz |
+| `is_noise_like` | Spectral flatness | > -30 dB |
+| `is_tone_like` | Spectral flatness | < -60 dB |
+| `high_tempo_confidence` | Tempo detection confidence | > 0.8 |
+| `low_tempo_confidence` | Tempo detection confidence | < 0.5 |
+
+**Output JSON structure:**
+```json
+{
+  "version": "v0.1-b5",
+  "classifier": "v0.1-b5-objective",
+  "total_files": 10,
+  "successful": 10,
+  "failed": 0,
+  "results": [
+    {
+      "file": "/path/to/kick.wav",
+      "tags": {
+        "auto_tags": ["is_percussive", "wide_spectrum"],
+        "auto_tags_confidence": {
+          "is_percussive": 0.89,
+          "wide_spectrum": 0.72
+        },
+        "classifier_version": "v0.1-b5-objective",
+        "classifier_type": "deterministic_rules",
+        "feature_params": {
+          "n_fft": 2048,
+          "hop_length": 512,
+          "sr": 22050
+        }
+      }
+    }
+  ]
+}
+```
+
+**Integration with schema v1:**
+Auto-tag results can be merged into your library JSON:
+- `model_outputs.auto_tags` — stores auto-generated tags
+- `model_outputs.auto_tags_confidence` — confidence scores per tag
+- `model_outputs.classifier_version` — tracks which classifier generated tags
+
+Future milestone (v0.1-b6+): ML-based subjective tags (`dark`, `bright`, `energetic`, `calm`) will populate `model_outputs.subjective_tags`.
+
+**Accessing Windows host audio from WSL2:**
+```bash
+# Windows path: C:\Users\bo\Music\Samples
+# WSL2 path: /mnt/c/Users/bo/Music/Samples
+
+python app.py auto-tag /mnt/c/Users/bo/Music/Samples -o tags.json -v
+```
+
+Note: Accessing `/mnt/` paths is ~2-3x slower than native WSL2 filesystem. For best performance, copy samples to WSL2 first.
 
 ### Search
 
@@ -337,14 +422,14 @@ Compatibility notes:
 
 ## Current Limits
 
-- JSON is the only storage layer in v0.1-b3
+- JSON is the only storage layer in v0.1-b5
 - Review write-back still only supports the five override fields listed above plus `review.notes`
 - There is no retrieval override support and no arbitrary nested patch system
 - `tempo_bpm` is heuristic and may still be half-time or double-time relative to musical intent
 - `tempo_applicable`, `tempo_quality`, `is_loop`, and `brightness` are useful retrieval helpers, not ground truth labels
 - Similar retrieval is intentionally lightweight and uses current numeric metadata only
 - There is no segment-level analysis yet
-- `model_outputs` is reserved but not populated by a classifier yet
+- `model_outputs.auto_tags` is populated by deterministic rules (v0.1-b5), but ML-based subjective tags (`dark`, `bright`, etc.) are not yet implemented (planned for v0.1-b6+)
 
 ## Compatibility Entry Points
 

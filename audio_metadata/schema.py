@@ -43,6 +43,15 @@ MODEL_OUTPUT_FIELD_DEFAULTS: dict[str, Any] = {
     "instrument_family": None,
     "texture": None,
     "timbre_type": None,
+    # v0.1-b5: Auto-tagging interface (objective feature tags)
+    "auto_tags": [],
+    "auto_tags_confidence": {},
+    "classifier_version": None,
+    "classifier_type": None,
+    # v0.1-b5: Reserved for future ML-based subjective tags
+    "subjective_tags": [],
+    "subjective_tags_confidence": {},
+    "ml_model_version": None,
 }
 
 
