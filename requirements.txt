@@ -1,6 +1,10 @@
-﻿librosa>=0.10.2
+librosa>=0.10.2
 mutagen>=1.47.0
 numpy>=1.26.4
 pyloudnorm>=0.1.1
 scipy>=1.13.0
 soundfile>=0.12.1
+
+# Optional: CLAP semantic search (v0.1-b6+)
+# Install separately: pip install laion-clap
+# clap>=0.5.0

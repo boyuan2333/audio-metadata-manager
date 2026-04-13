@@ -26,8 +26,8 @@ It does not include a database, vector store, UI, team workflows, cloud sync, se
 - `search`: query the exported JSON with explicit field filters
 - `nl-query`: search with natural language queries (v0.1-b4)
 - **`auto-tag`: auto-tag audio files with objective feature-based labels (v0.1-b5)**
-- **`export-training`: export labeled training data for ML classification (v0.1-b6 new)**
-- **`train-classifier`: train ML classifier for subjective tag prediction (v0.1-b6 new)**
+- **`compute-embeddings`: compute CLAP embeddings for semantic search (v0.1-b6 new, optional)**
+- **`semantic-search`: search audio using natural language with CLAP (v0.1-b6 new, optional)**
 - `similar`: filter candidates, then rank them against a reference audio file using current numeric metadata
 - Stable schema v1 with reserved space for future `segments`, `model_outputs.auto_tags`, and `retrieval` expansion
 
@@ -290,94 +290,87 @@ python app.py auto-tag /mnt/c/Users/bo/Music/Samples -o tags.json -v
 
 Note: Accessing `/mnt/` paths is ~2-3x slower than native WSL2 filesystem. For best performance, copy samples to WSL2 first.
 
-### Export Training Data (v0.1-b6 new)
+### Compute Embeddings (v0.1-b6 new, optional)
 
-Export labeled training data from reviewed metadata for ML classifier training:
+Compute CLAP embeddings for semantic search. Requires optional `laion-clap` package.
+
+**Install CLAP (one-time):**
+```bash
+pip install -r requirements-optional.txt
+```
+
+**Compute embeddings:**
+```bash
+# Batch compute for all audio files
+python app.py compute-embeddings --input ./audio --output embeddings.json -v
+
+# Specify file format filter
+python app.py compute-embeddings --input ./audio --output embeddings.json --filter "*.wav"
+
+# Append to existing embeddings
+python app.py compute-embeddings --input ./audio/new --output embeddings.json --append
+```
+
+**Output:**
+```json
+{
+  "model": "laion-audioclip-full-2022",
+  "embedding_dim": 512,
+  "computed_at": "2026-04-13T21:00:00Z",
+  "files": [
+    {
+      "path": "/audio/pad_dark_120.wav",
+      "embedding": [0.12, -0.45, 0.78, ...]
+    }
+  ]
+}
+```
+
+**Performance:**
+- ~1-2 seconds per file (one-time cost)
+- ~2KB storage per file (512 floats)
+- CLAP model: ~300MB disk, ~600MB RAM
+
+### Semantic Search (v0.1-b6 new, optional)
+
+Search audio using natural language with CLAP embeddings.
 
 ```bash
-# Generate report (check label distribution)
-python app.py export-training --input ./out/library-reviewed.json --report
+# Simple semantic search
+python app.py semantic-search --query "dark pad" --embeddings embeddings.json --top-k 10
 
-# Export to CSV for training
-python app.py export-training --input ./out/library-reviewed.json --output training-data.csv
+# With similarity threshold
+python app.py semantic-search --query "energetic drum loop" --embeddings embeddings.json --threshold 0.7
 
-# Include unlabeled samples (for semi-supervised learning)
-python app.py export-training --input ./out/library-reviewed.json --output training-data.csv --include-unlabeled
-
-# Verbose output (show feature columns)
-python app.py export-training --input ./out/library-reviewed.json --output training-data.csv -v
+# Verbose output (show similarity scores)
+python app.py semantic-search --query "calm ambient texture" --embeddings embeddings.json -v
 ```
 
-**Label extraction priority:**
-1. `model_outputs.subjective_tags` (v0.1-b6+)
-2. `retrieval.tags` (if contains dark/bright/energetic/calm)
-3. `derived.brightness` (mapped: dark→dark, bright/very_bright→bright)
+**How it works:**
+1. Your text query → CLAP → 512-dim vector
+2. Compare with all audio embeddings (cosine similarity)
+3. Return top-K most similar results
 
-### Train ML Classifier (v0.1-b6 new)
+**Example output:**
+```
+Query: "dark pad around 120 bpm"
+Top 5 results:
 
-Train a classifier to predict subjective tags from objective audio features:
+  1. [0.89] /audio/pads/dark_pad_120bpm.wav
+  2. [0.85] /audio/pads/ambient_dark_slow.wav
+  3. [0.82] /audio/textures/dark_texture_long.wav
+  4. [0.79] /audio/pads/low_end_pad.wav
+  5. [0.76] /audio/atmospheres/dark_atmo.wav
+```
+
+### Hybrid Search (v0.1-b6 Phase 3 - planned)
+
+Combine rule-based filtering with semantic re-ranking:
 
 ```bash
-# Train Random Forest classifier (default)
-python app.py train-classifier --input training-data.csv --output model.pkl -v
-
-# Train Logistic Regression
-python app.py train-classifier --input training-data.csv --output model.pkl --classifier logistic_regression -v
-
-# Adjust train/test split and cross-validation
-python app.py train-classifier --input training-data.csv --output model.pkl --test-size 0.3 --cv-folds 10
-
-# Disable feature scaling
-python app.py train-classifier --input training-data.csv --output model.pkl --no-scale
-
-# Inspect training data without training
-python app.py train-classifier --input training-data.csv --report-only
-```
-
-**Output includes:**
-- Test set metrics (accuracy, precision, recall, F1)
-- Cross-validation scores
-- Feature importances (Random Forest only)
-- Saved model file (pickle format)
-
-**Example training report:**
-```
-=== ML Classifier Training Report ===
-
-Classifier: random_forest
-Total labeled samples: 16
-  - Training: 12
-  - Test: 4
-
-Classes:
-  - dark: 8
-  - bright: 8
-
-Test Set Metrics:
-  Accuracy:  1.0000
-  Precision: 1.0000
-  Recall:    1.0000
-  F1 Score:  1.0000
-
-Cross-Validation (5 folds):
-  Accuracy: 1.0000 (+/- 0.0000)
-
-Top Feature Importances:
-  spectral_centroid_hz: 0.1100
-  spectral_bandwidth_hz: 0.0800
-  loudness_lufs: 0.0800
-```
-
-### Predict Subjective Tags (v0.1-b6 Phase 3 - planned)
-
-Use trained model to predict tags for new audio (coming in Phase 3):
-
-```bash
-# Batch prediction
-python app.py predict-tags --input model.pkl --library ./out/library.json --output tagged-library.json
-
-# Single file prediction
-python app.py predict-tags --input model.pkl --file ./audio/sample.wav
+# Rule filter + semantic rank
+python app.py hybrid-search --query "dark pad around 120 bpm" \
+  --input library.json --embeddings embeddings.json --top-k 10
 ```
 
 ### Search
