@@ -9,7 +9,8 @@ import search_similar as similar_command
 import nl_query as nl_query_command
 import auto_tag_cli as auto_tag_command
 import export_training_cli as export_training_command
-import train_classifier_cli as train_classifier_command
+import clap_embed_cli as clap_embed_command
+import semantic_search_cli as semantic_search_command
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -20,7 +21,7 @@ def build_parser() -> argparse.ArgumentParser:
             "Index audio into schema v1 JSON, review overrides, search by explicit fields, "
             "run lightweight similar retrieval, batch review fixes, review candidate discovery, "
             "review workflow presets, grouped review candidate discovery, finer review stats, "
-            "natural language query, objective auto-tagging, training data export, and ML classifier training for subjective tag prediction."
+            "natural language query, objective auto-tagging, CLAP embedding computation, and semantic search."
         ),
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -107,14 +108,24 @@ def build_parser() -> argparse.ArgumentParser:
         validator=export_training_command.validate_args,
     )
 
-    train_classifier_parser = subparsers.add_parser(
-        "train-classifier",
-        help="Train ML classifier for subjective tag prediction (v0.1-b6).",
-        parents=[train_classifier_command.build_parser(add_help=False)],
+    compute_embeddings_parser = subparsers.add_parser(
+        "compute-embeddings",
+        help="Compute CLAP embeddings for audio files (v0.1-b6, optional).",
+        parents=[clap_embed_command.build_parser(add_help=False)],
     )
-    train_classifier_parser.set_defaults(
-        handler=train_classifier_command.run,
-        validator=train_classifier_command.validate_args,
+    compute_embeddings_parser.set_defaults(
+        handler=clap_embed_command.run,
+        validator=clap_embed_command.validate_args,
+    )
+
+    semantic_search_parser = subparsers.add_parser(
+        "semantic-search",
+        help="Search audio using CLAP embeddings (v0.1-b6, optional).",
+        parents=[semantic_search_command.build_parser(add_help=False)],
+    )
+    semantic_search_parser.set_defaults(
+        handler=semantic_search_command.run,
+        validator=semantic_search_command.validate_args,
     )
 
     return parser
