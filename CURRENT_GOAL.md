@@ -1,11 +1,53 @@
 # CURRENT_GOAL.md
 
 ## Version
-- Current repo version: `v0.1-b5` ✅ **COMPLETE**
-- Previous version: `v0.1-b4` (NL Query Layer)
-- Planned next milestone: `v0.1-b6` (ML-Based Subjective Tags)
+- Current repo version: `v0.1-b6` 🚧 **IN PROGRESS**
+- Previous version: `v0.1-b5` (Objective Auto-Tagging Layer) ✅
+- Current milestone: `v0.1-b6` (ML-Based Subjective Tags)
 
-## Goal (v0.1-b5) — Objective Auto-Tagging Layer ✅ COMPLETE
+## Goal (v0.1-b6) — ML-Based Subjective Tags 🚧 IN PROGRESS
+
+Build a ML-based subjective classification layer that:
+1. 🚧 Collects user-labeled training data from reviewed metadata
+2. ⏳ Trains simple classifiers (Random Forest / Logistic Regression)
+3. ⏳ Predicts subjective tags: `dark`, `bright`, `energetic`, `calm`
+4. ⏳ Combines with objective auto-tags for hybrid scoring
+
+## v0.1-b6 Deliverables
+
+### Phase 1: Training Data Collection Pipeline ✅
+- [x] `audio_metadata/training_data.py` — training data export module
+  - `export_training_data()` — export labeled samples to CSV
+  - `generate_training_report()` — analyze label distribution
+  - Label extraction priority: subjective_tags > retrieval.tags > derived.brightness
+- [x] `export_training_cli.py` — CLI command for training data export
+  - `--report` mode for label distribution analysis
+  - `--include-unlabeled` for semi-supervised learning
+  - `--verbose` for detailed feature column info
+- [x] `tests/test_training_data.py` — 7 unit tests (100% pass)
+- [x] `app.py export-training` — integrated CLI command
+
+### Phase 2: ML Classifier Training ⏳
+- [ ] `audio_metadata/ml_classifier.py` — ML training module
+  - Random Forest classifier (default)
+  - Logistic Regression (alternative)
+  - Cross-validation and metrics
+- [ ] `tests/test_ml_classifier.py` — classifier tests
+
+### Phase 3: Prediction Integration ⏳
+- [ ] `audio_metadata/predict_tags.py` — prediction module
+  - Load trained model
+  - Predict subjective tags for new audio
+  - Confidence scoring
+- [ ] `predict_tags_cli.py` — CLI command for batch prediction
+- [ ] `app.py predict-tags` — integrated CLI command
+
+### Phase 4: Hybrid Scoring ⏳
+- [ ] Combine objective + subjective tags
+- [ ] Confidence-weighted tag application
+- [ ] User feedback loop
+
+## v0.1-b5 Deliverables ✅ COMPLETE
 
 Build a minimal auto-tagging layer that:
 1. ✅ Populates `model_outputs.auto_tags` with **objective, physically-measurable features**

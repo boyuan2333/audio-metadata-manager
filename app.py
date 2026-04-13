@@ -8,17 +8,18 @@ import search_metadata as search_command
 import search_similar as similar_command
 import nl_query as nl_query_command
 import auto_tag_cli as auto_tag_command
+import export_training_cli as export_training_command
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="app.py",
         description=(
-            "Local single-user audio sample manager core (v0.1-b5). "
+            "Local single-user audio sample manager core (v0.1-b6). "
             "Index audio into schema v1 JSON, review overrides, search by explicit fields, "
             "run lightweight similar retrieval, batch review fixes, review candidate discovery, "
             "review workflow presets, grouped review candidate discovery, finer review stats, "
-            "natural language query, and objective auto-tagging."
+            "natural language query, objective auto-tagging, and training data export for ML classification."
         ),
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -94,6 +95,16 @@ def build_parser() -> argparse.ArgumentParser:
         parents=[auto_tag_command.build_parser(add_help=False)],
     )
     auto_tag_parser.set_defaults(handler=auto_tag_command.run, validator=auto_tag_command.validate_args)
+
+    export_training_parser = subparsers.add_parser(
+        "export-training",
+        help="Export labeled training data for ML-based subjective classification (v0.1-b6).",
+        parents=[export_training_command.build_parser(add_help=False)],
+    )
+    export_training_parser.set_defaults(
+        handler=export_training_command.run,
+        validator=export_training_command.validate_args,
+    )
 
     return parser
 
