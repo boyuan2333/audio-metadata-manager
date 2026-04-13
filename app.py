@@ -9,6 +9,7 @@ import search_similar as similar_command
 import nl_query as nl_query_command
 import auto_tag_cli as auto_tag_command
 import export_training_cli as export_training_command
+import train_classifier_cli as train_classifier_command
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -19,7 +20,7 @@ def build_parser() -> argparse.ArgumentParser:
             "Index audio into schema v1 JSON, review overrides, search by explicit fields, "
             "run lightweight similar retrieval, batch review fixes, review candidate discovery, "
             "review workflow presets, grouped review candidate discovery, finer review stats, "
-            "natural language query, objective auto-tagging, and training data export for ML classification."
+            "natural language query, objective auto-tagging, training data export, and ML classifier training for subjective tag prediction."
         ),
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -104,6 +105,16 @@ def build_parser() -> argparse.ArgumentParser:
     export_training_parser.set_defaults(
         handler=export_training_command.run,
         validator=export_training_command.validate_args,
+    )
+
+    train_classifier_parser = subparsers.add_parser(
+        "train-classifier",
+        help="Train ML classifier for subjective tag prediction (v0.1-b6).",
+        parents=[train_classifier_command.build_parser(add_help=False)],
+    )
+    train_classifier_parser.set_defaults(
+        handler=train_classifier_command.run,
+        validator=train_classifier_command.validate_args,
     )
 
     return parser

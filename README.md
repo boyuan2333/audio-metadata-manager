@@ -25,7 +25,9 @@ It does not include a database, vector store, UI, team workflows, cloud sync, se
 - `review-stats`: summarize current override coverage, note prefixes, inferred sources, and common reviewed filename keywords
 - `search`: query the exported JSON with explicit field filters
 - `nl-query`: search with natural language queries (v0.1-b4)
-- **`auto-tag`: auto-tag audio files with objective feature-based labels (v0.1-b5 new)**
+- **`auto-tag`: auto-tag audio files with objective feature-based labels (v0.1-b5)**
+- **`export-training`: export labeled training data for ML classification (v0.1-b6 new)**
+- **`train-classifier`: train ML classifier for subjective tag prediction (v0.1-b6 new)**
 - `similar`: filter candidates, then rank them against a reference audio file using current numeric metadata
 - Stable schema v1 with reserved space for future `segments`, `model_outputs.auto_tags`, and `retrieval` expansion
 
@@ -287,6 +289,96 @@ python app.py auto-tag /mnt/c/Users/bo/Music/Samples -o tags.json -v
 ```
 
 Note: Accessing `/mnt/` paths is ~2-3x slower than native WSL2 filesystem. For best performance, copy samples to WSL2 first.
+
+### Export Training Data (v0.1-b6 new)
+
+Export labeled training data from reviewed metadata for ML classifier training:
+
+```bash
+# Generate report (check label distribution)
+python app.py export-training --input ./out/library-reviewed.json --report
+
+# Export to CSV for training
+python app.py export-training --input ./out/library-reviewed.json --output training-data.csv
+
+# Include unlabeled samples (for semi-supervised learning)
+python app.py export-training --input ./out/library-reviewed.json --output training-data.csv --include-unlabeled
+
+# Verbose output (show feature columns)
+python app.py export-training --input ./out/library-reviewed.json --output training-data.csv -v
+```
+
+**Label extraction priority:**
+1. `model_outputs.subjective_tags` (v0.1-b6+)
+2. `retrieval.tags` (if contains dark/bright/energetic/calm)
+3. `derived.brightness` (mapped: dark→dark, bright/very_bright→bright)
+
+### Train ML Classifier (v0.1-b6 new)
+
+Train a classifier to predict subjective tags from objective audio features:
+
+```bash
+# Train Random Forest classifier (default)
+python app.py train-classifier --input training-data.csv --output model.pkl -v
+
+# Train Logistic Regression
+python app.py train-classifier --input training-data.csv --output model.pkl --classifier logistic_regression -v
+
+# Adjust train/test split and cross-validation
+python app.py train-classifier --input training-data.csv --output model.pkl --test-size 0.3 --cv-folds 10
+
+# Disable feature scaling
+python app.py train-classifier --input training-data.csv --output model.pkl --no-scale
+
+# Inspect training data without training
+python app.py train-classifier --input training-data.csv --report-only
+```
+
+**Output includes:**
+- Test set metrics (accuracy, precision, recall, F1)
+- Cross-validation scores
+- Feature importances (Random Forest only)
+- Saved model file (pickle format)
+
+**Example training report:**
+```
+=== ML Classifier Training Report ===
+
+Classifier: random_forest
+Total labeled samples: 16
+  - Training: 12
+  - Test: 4
+
+Classes:
+  - dark: 8
+  - bright: 8
+
+Test Set Metrics:
+  Accuracy:  1.0000
+  Precision: 1.0000
+  Recall:    1.0000
+  F1 Score:  1.0000
+
+Cross-Validation (5 folds):
+  Accuracy: 1.0000 (+/- 0.0000)
+
+Top Feature Importances:
+  spectral_centroid_hz: 0.1100
+  spectral_bandwidth_hz: 0.0800
+  loudness_lufs: 0.0800
+```
+
+### Predict Subjective Tags (v0.1-b6 Phase 3 - planned)
+
+Use trained model to predict tags for new audio (coming in Phase 3):
+
+```bash
+# Batch prediction
+python app.py predict-tags --input model.pkl --library ./out/library.json --output tagged-library.json
+
+# Single file prediction
+python app.py predict-tags --input model.pkl --file ./audio/sample.wav
+```
 
 ### Search
 

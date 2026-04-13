@@ -5,6 +5,8 @@
 - Previous version: `v0.1-b5` (Objective Auto-Tagging Layer) ✅
 - Current milestone: `v0.1-b6` (ML-Based Subjective Tags)
 
+**v0.1-b6 Progress:** Phase 1 ✅ | Phase 2 ✅ | Phase 3 ⏳ | Phase 4 ⏳
+
 ## Goal (v0.1-b6) — ML-Based Subjective Tags 🚧 IN PROGRESS
 
 Build a ML-based subjective classification layer that:
@@ -27,12 +29,19 @@ Build a ML-based subjective classification layer that:
 - [x] `tests/test_training_data.py` — 7 unit tests (100% pass)
 - [x] `app.py export-training` — integrated CLI command
 
-### Phase 2: ML Classifier Training ⏳
-- [ ] `audio_metadata/ml_classifier.py` — ML training module
+### Phase 2: ML Classifier Training ✅
+- [x] `audio_metadata/ml_classifier.py` — ML training module
   - Random Forest classifier (default)
   - Logistic Regression (alternative)
   - Cross-validation and metrics
-- [ ] `tests/test_ml_classifier.py` — classifier tests
+  - Model persistence (pickle)
+  - Prediction API
+- [x] `train_classifier_cli.py` — CLI command for training
+  - `--classifier` selector (random_forest / logistic_regression)
+  - `--test-size`, `--cv-folds`, `--no-scale` options
+  - `--report-only` for data inspection
+- [x] `tests/test_ml_classifier.py` — 16 unit tests (100% pass)
+- [x] `app.py train-classifier` — integrated CLI command
 
 ### Phase 3: Prediction Integration ⏳
 - [ ] `audio_metadata/predict_tags.py` — prediction module
