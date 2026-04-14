@@ -11,6 +11,7 @@ import auto_tag_cli as auto_tag_command
 import export_training_cli as export_training_command
 import clap_embed_cli as clap_embed_command
 import semantic_search_cli as semantic_search_command
+import hybrid_search_cli as hybrid_search_command
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -21,7 +22,8 @@ def build_parser() -> argparse.ArgumentParser:
             "Index audio into schema v1 JSON, review overrides, search by explicit fields, "
             "run lightweight similar retrieval, batch review fixes, review candidate discovery, "
             "review workflow presets, grouped review candidate discovery, finer review stats, "
-            "natural language query, objective auto-tagging, CLAP embedding computation, and semantic search."
+            "natural language query, objective auto-tagging, CLAP embedding computation, "
+            "semantic search, and hybrid search."
         ),
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -126,6 +128,16 @@ def build_parser() -> argparse.ArgumentParser:
     semantic_search_parser.set_defaults(
         handler=semantic_search_command.run,
         validator=semantic_search_command.validate_args,
+    )
+
+    hybrid_search_parser = subparsers.add_parser(
+        "hybrid-search",
+        help="Hybrid search combining rule-based filtering and CLAP semantic search (v0.1-b6, optional).",
+        parents=[hybrid_search_command.build_parser(add_help=False)],
+    )
+    hybrid_search_parser.set_defaults(
+        handler=hybrid_search_command.run,
+        validator=hybrid_search_command.validate_args,
     )
 
     return parser

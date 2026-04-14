@@ -25,7 +25,7 @@ CLAP_EMBEDDING_DIM = 512
 def check_clap_available() -> bool:
     """Check if CLAP is installed."""
     try:
-        import clap_module  # noqa: F401
+        from laion_clap.hook import CLAP_Module  # noqa: F401
         return True
     except ImportError:
         return False
@@ -35,7 +35,7 @@ def load_clap_model(model_name: str = CLAP_MODEL_NAME, device: str = "cpu"):
     """Load pre-trained CLAP model.
     
     Args:
-        model_name: CLAP model name
+        model_name: Ignored for laion_clap (uses default checkpoint)
         device: "cpu" or "cuda"
         
     Returns:
@@ -45,13 +45,11 @@ def load_clap_model(model_name: str = CLAP_MODEL_NAME, device: str = "cpu"):
         ImportError: If CLAP not installed
     """
     try:
-        from clap_module import create_model
+        from laion_clap.hook import CLAP_Module
         
-        model, _, _ = create_model(
-            model_name,
-            pretrained=True,
-            device=device,
-        )
+        model = CLAP_Module(enable_fusion=False, device=device)
+        model.load_ckpt()  # Uses default checkpoint (downloads if needed)
+        
         return model
     except ImportError as e:
         raise ImportError(
@@ -63,7 +61,7 @@ def compute_audio_embedding(model, audio_path: str | Path, device: str = "cpu") 
     """Compute embedding for a single audio file.
     
     Args:
-        model: CLAP model instance
+        model: CLAP model instance (laion_clap.CLAP_Module)
         audio_path: Path to audio file
         device: "cpu" or "cuda"
         
@@ -75,14 +73,16 @@ def compute_audio_embedding(model, audio_path: str | Path, device: str = "cpu") 
     # CLAP expects file path list
     audio_paths = [str(audio_path)]
     
-    # Compute embedding
+    # Compute embedding (laion_clap API)
     with torch.no_grad():
-        embedding = model.get_audio_embedding_from_filelist(
-            audio_paths,
-            use_tensor=False,  # Return numpy array
-        )
+        embedding = model.get_audio_embedding_from_filelist(audio_paths)
     
-    # Convert to list of floats
+    # Convert to list of floats (embedding is already on CPU)
+    if hasattr(embedding, 'cpu'):
+        embedding = embedding.cpu()
+    if hasattr(embedding, 'numpy'):
+        embedding = embedding.numpy()
+    
     return embedding[0].tolist()
 
 
@@ -90,7 +90,7 @@ def compute_text_embedding(model, text: str, device: str = "cpu") -> list[float]
     """Compute embedding for a text query.
     
     Args:
-        model: CLAP model instance
+        model: CLAP model instance (laion_clap.CLAP_Module)
         text: Text query
         device: "cpu" or "cuda"
         
@@ -99,9 +99,15 @@ def compute_text_embedding(model, text: str, device: str = "cpu") -> list[float]
     """
     import torch
     
-    # Compute embedding
+    # Compute embedding (laion_clap API)
     with torch.no_grad():
-        embedding = model.get_text_embedding([text], use_tensor=False)
+        embedding = model.get_text_embedding([text])
+    
+    # Convert to list of floats
+    if hasattr(embedding, 'cpu'):
+        embedding = embedding.cpu()
+    if hasattr(embedding, 'numpy'):
+        embedding = embedding.numpy()
     
     return embedding[0].tolist()
 

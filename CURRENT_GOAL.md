@@ -1,11 +1,11 @@
 # CURRENT_GOAL.md
 
 ## Version
-- Current repo version: `v0.1-b6` 🚧 **IN PROGRESS**
+- Current repo version: `v0.1-b6` ✅ **COMPLETE**
 - Previous version: `v0.1-b5` (Objective Auto-Tagging Layer) ✅
-- Current milestone: `v0.1-b6` (CLAP Semantic Search — Optional)
+- Completed milestone: `v0.1-b6` (CLAP Semantic Search — Optional) 🎉
 
-**v0.1-b6 Progress:** Phase 1 ⏳ | Phase 2 ⏳ | Phase 3 ⏳
+**v0.1-b6 Progress:** Phase 1 ✅ | Phase 2 ✅ | Phase 3 ✅  **COMPLETE** 🎉
 
 ---
 
@@ -23,40 +23,41 @@
 
 ## v0.1-b6 Deliverables
 
-### Phase 1: CLAP Embedding Computation ⏳
-- [ ] `audio_metadata/clap_embed.py` — CLAP embedding module
+### Phase 1: CLAP Embedding Computation ✅
+- [x] `audio_metadata/clap_embed.py` — CLAP embedding module
   - Load pre-trained CLAP model (laion-audioclip-full-2022)
   - Batch compute embeddings for audio files
   - Export to independent JSON (doesn't pollute main library.json)
-- [ ] `clap_embed_cli.py` — CLI command for batch embedding
+- [x] `clap_embed_cli.py` — CLI command for batch embedding
   - `--input` audio directory or file list
   - `--output` embeddings JSON file
   - `--batch-size` for memory control
   - `--verbose` progress output
-- [ ] `tests/test_clap_embed.py` — embedding tests (mock model for CI)
-- [ ] `app.py compute-embeddings` — integrated CLI command
+- [x] `tests/test_clap_embed.py` — embedding tests (mock model for CI)
+- [x] `app.py compute-embeddings` — integrated CLI command
 
-### Phase 2: Semantic Search ⏳
-- [ ] `semantic_search.py` — semantic search module
+### Phase 2: Semantic Search ✅
+- [x] `audio_metadata/clap_embed.py` — semantic search functions (integrated)
   - Load embeddings from JSON
   - Convert text query to CLAP embedding
   - Cosine similarity search → Top-K results
-- [ ] `semantic_search_cli.py` — CLI command
+- [x] `semantic_search_cli.py` — CLI command
   - `--query` natural language query
   - `--embeddings` path to embeddings JSON
   - `--top-k` result count
   - `--threshold` minimum similarity score
-- [ ] `tests/test_semantic_search.py` — search tests
-- [ ] `app.py semantic-search` — integrated CLI command
+- [x] `tests/test_clap_embed.py` — search tests (integrated)
+- [x] `app.py semantic-search` — integrated CLI command
 
-### Phase 3: Hybrid Search ⏳
-- [ ] Integrate semantic search with existing `nl-query`
+### Phase 3: Hybrid Search ✅
+- [x] Integrate semantic search with existing `nl-query`
   - Rule-based filtering (bpm/duration/keyword) → coarse filter
   - CLAP similarity → re-ranking
-- [ ] `hybrid_search.py` — hybrid search module
-- [ ] `app.py hybrid-search` — unified CLI command
-- [ ] Documentation: when to use semantic vs rule-based search
-
+- [x] `audio_metadata/hybrid_search.py` — hybrid search module
+- [x] `hybrid_search_cli.py` — CLI command
+- [x] `tests/test_hybrid_search.py` — hybrid search tests
+- [x] `app.py hybrid-search` — integrated CLI command
+- [x] Documentation: when to use semantic vs rule-based search
 ---
 
 ## Design Decisions
@@ -200,9 +201,11 @@ python app.py hybrid-search --query "dark pad around 120 bpm" --input library.js
 
 | Commit | Description |
 |--------|-------------|
-| *(pending)* | feat(v0.1-b6): add CLAP embedding computation |
-| *(pending)* | feat(v0.1-b6): add semantic search CLI |
-| *(pending)* | docs: update README with CLAP usage |
+| *(to be committed)* | feat(v0.1-b6): add CLAP embedding computation module |
+| *(to be committed)* | feat(v0.1-b6): add semantic search CLI |
+| *(to be committed)* | feat(v0.1-b6): add hybrid search (rule-based + CLAP) |
+| *(to be committed)* | test(v0.1-b6): add CLAP and hybrid search tests |
+| *(to be committed)* | docs: update CURRENT_GOAL.md for v0.1-b6 completion |
 
 ---
 
