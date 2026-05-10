@@ -38,6 +38,11 @@ RETRIEVAL_FIELD_DEFAULTS: dict[str, Any] = {
     "density": None,
     "role": None,
     "domain": None,
+    # v0.1-b7: Metadata enrichment fields
+    "semantic_tags": [],
+    "embedding_ref": None,
+    "embedding_model": None,
+    "embedding_status": None,
 }
 MODEL_OUTPUT_FIELD_DEFAULTS: dict[str, Any] = {
     "instrument_family": None,
@@ -52,6 +57,9 @@ MODEL_OUTPUT_FIELD_DEFAULTS: dict[str, Any] = {
     "subjective_tags": [],
     "subjective_tags_confidence": {},
     "ml_model_version": None,
+    # v0.1-b7: Semantic enrichment fields
+    "semantic_tags": [],
+    "semantic_tags_confidence": {},
 }
 
 

@@ -312,3 +312,30 @@ class TestMLInterfaceCompatibility:
         assert model_outputs["subjective_tags"] == []
         assert model_outputs["subjective_tags_confidence"] == {}
         assert model_outputs["ml_model_version"] is None
+
+
+class TestEnrichmentSchemaDefaults:
+    """Tests for v0.1-b7 enrichment schema defaults."""
+
+    def test_schema_v1_includes_enrichment_defaults(self):
+        """Test that normalized records include enrichment fields."""
+        from audio_metadata.schema import normalize_record_schema_v1
+
+        record = normalize_record_schema_v1({
+            "source": {
+                "path": "audio/warm_guitar.wav",
+                "file_name": "warm_guitar.wav",
+                "file_format": "wav",
+            },
+            "status": "ok",
+        })
+
+        # retrieval enrichment fields
+        assert record["retrieval"]["semantic_tags"] == []
+        assert record["retrieval"]["embedding_ref"] is None
+        assert record["retrieval"]["embedding_model"] is None
+        assert record["retrieval"]["embedding_status"] is None
+
+        # model_outputs enrichment fields
+        assert record["model_outputs"]["semantic_tags"] == []
+        assert record["model_outputs"]["semantic_tags_confidence"] == {}
