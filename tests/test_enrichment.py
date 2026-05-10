@@ -175,3 +175,135 @@ class TestEmbeddingFilenameFallback:
         assert record["retrieval"]["embedding_status"] == "ready"
         # Should use the exact path match
         assert record["retrieval"]["embedding_ref"] == "embeddings.json#audio/warm_guitar.wav"
+
+
+class TestSemanticTagScoring:
+    """Tests for semantic tag scoring against vocabulary."""
+
+    def test_enrich_adds_semantic_tags_above_threshold(self):
+        """Tags above threshold should be written to record."""
+        embeddings_data = {
+            "model": "laion-audioclip-full-2022",
+            "embedding_dim": 512,
+            "files": [
+                {"path": "audio/warm_guitar.wav", "embedding": [1.0] + [0.0] * 511}
+            ],
+        }
+        vocabulary_data = {
+            "version": "test-vocab",
+            "prompts": [
+                {
+                    "tag": "warm guitar",
+                    "category": "instrument_texture",
+                    "text": "warm guitar",
+                    "threshold": 0.5,
+                    "embedding": [1.0] + [0.0] * 511,
+                }
+            ],
+        }
+
+        enriched, summary = enrich_payload(
+            _payload_one_record(),
+            embeddings_data=embeddings_data,
+            vocabulary_data=vocabulary_data,
+            semantic_tags=True,
+        )
+
+        record = enriched["files"][0]
+        assert record["retrieval"]["semantic_tags"] == ["warm guitar"]
+        assert record["model_outputs"]["semantic_tags"] == ["warm guitar"]
+        assert record["model_outputs"]["semantic_tags_confidence"]["warm guitar"] == 1.0
+        assert record["model_outputs"]["classifier_version"] == "v0.1-b7-enrichment"
+        assert record["model_outputs"]["classifier_type"] == "hybrid_metadata_enrichment"
+        assert summary["semantic_tags_added"] == 1
+
+    def test_enrich_skips_semantic_tags_below_threshold(self):
+        """Tags below threshold should not be written."""
+        embeddings_data = {
+            "model": "laion-audioclip-full-2022",
+            "embedding_dim": 512,
+            "files": [
+                {"path": "audio/warm_guitar.wav", "embedding": [1.0] + [0.0] * 511}
+            ],
+        }
+        vocabulary_data = {
+            "version": "test-vocab",
+            "prompts": [
+                {
+                    "tag": "dark pad",
+                    "category": "role_texture",
+                    "text": "dark pad",
+                    "threshold": 0.9,
+                    "embedding": [0.0, 1.0] + [0.0] * 510,
+                }
+            ],
+        }
+
+        enriched, summary = enrich_payload(
+            _payload_one_record(),
+            embeddings_data=embeddings_data,
+            vocabulary_data=vocabulary_data,
+            semantic_tags=True,
+        )
+
+        record = enriched["files"][0]
+        assert record["retrieval"]["semantic_tags"] == []
+        assert record["model_outputs"]["semantic_tags"] == []
+        assert summary["semantic_tags_added"] == 0
+
+    def test_enrich_respects_top_n_limit(self):
+        """Should limit semantic tags to top_n."""
+        embeddings_data = {
+            "model": "laion-audioclip-full-2022",
+            "embedding_dim": 512,
+            "files": [
+                {"path": "audio/warm_guitar.wav", "embedding": [1.0] + [0.0] * 511}
+            ],
+        }
+        # All tags will have score 1.0 (identical vectors)
+        vocabulary_data = {
+            "version": "test-vocab",
+            "prompts": [
+                {"tag": f"tag-{i}", "text": f"tag-{i}", "threshold": 0.1, "embedding": [1.0] + [0.0] * 511}
+                for i in range(10)
+            ],
+        }
+
+        enriched, summary = enrich_payload(
+            _payload_one_record(),
+            embeddings_data=embeddings_data,
+            vocabulary_data=vocabulary_data,
+            semantic_tags=True,
+            top_n=3,
+        )
+
+        record = enriched["files"][0]
+        assert len(record["retrieval"]["semantic_tags"]) == 3
+        assert summary["semantic_tags_added"] == 3
+
+    def test_enrich_no_semantic_tags_without_flag(self):
+        """semantic_tags=False should skip scoring entirely."""
+        embeddings_data = {
+            "model": "laion-audioclip-full-2022",
+            "embedding_dim": 512,
+            "files": [
+                {"path": "audio/warm_guitar.wav", "embedding": [1.0] + [0.0] * 511}
+            ],
+        }
+        vocabulary_data = {
+            "version": "test-vocab",
+            "prompts": [
+                {"tag": "guitar", "text": "guitar", "threshold": 0.1, "embedding": [1.0] + [0.0] * 511}
+            ],
+        }
+
+        enriched, summary = enrich_payload(
+            _payload_one_record(),
+            embeddings_data=embeddings_data,
+            vocabulary_data=vocabulary_data,
+            semantic_tags=False,  # disabled
+        )
+
+        record = enriched["files"][0]
+        assert record["retrieval"]["semantic_tags"] == []
+        assert summary["semantic_tags_added"] == 0

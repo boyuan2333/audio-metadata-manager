@@ -1,0 +1,15 @@
+{
+  "version": "v0.1-b7-default",
+  "prompts": [
+    {"tag": "guitar", "category": "instrument", "text": "guitar", "threshold": 0.25},
+    {"tag": "piano", "category": "instrument", "text": "piano", "threshold": 0.25},
+    {"tag": "drums", "category": "instrument", "text": "drums", "threshold": 0.25},
+    {"tag": "bass", "category": "instrument", "text": "bass", "threshold": 0.25},
+    {"tag": "synth", "category": "instrument", "text": "synthesizer", "threshold": 0.25},
+    {"tag": "vocal", "category": "instrument", "text": "vocal", "threshold": 0.25},
+    {"tag": "warm guitar", "category": "instrument_texture", "text": "warm guitar", "threshold": 0.25},
+    {"tag": "dark pad", "category": "role_texture", "text": "dark ambient pad", "threshold": 0.25},
+    {"tag": "bright synth lead", "category": "role_texture", "text": "bright synthesizer lead", "threshold": 0.25},
+    {"tag": "energetic drum loop", "category": "role_texture", "text": "energetic drum loop", "threshold": 0.25}
+  ]
+}
