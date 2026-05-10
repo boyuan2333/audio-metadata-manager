@@ -8,6 +8,7 @@ import search_metadata as search_command
 import search_similar as similar_command
 import nl_query as nl_query_command
 import auto_tag_cli as auto_tag_command
+import enrich_cli as enrich_command
 import export_training_cli as export_training_command
 import clap_embed_cli as clap_embed_command
 import semantic_search_cli as semantic_search_command
@@ -100,6 +101,16 @@ def build_parser() -> argparse.ArgumentParser:
     )
     auto_tag_parser.set_defaults(handler=auto_tag_command.run, validator=auto_tag_command.validate_args)
 
+    enrich_parser = subparsers.add_parser(
+        "enrich",
+        help="Enrich metadata with embedding coverage and semantic tags (v0.1-b7).",
+        parents=[enrich_command.build_parser(add_help=False)],
+    )
+    enrich_parser.set_defaults(
+        handler=enrich_command.run,
+        validator=enrich_command.validate_args,
+    )
+
     export_training_parser = subparsers.add_parser(
         "export-training",
         help="Export labeled training data for ML-based subjective classification (v0.1-b6).",
@@ -159,4 +170,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

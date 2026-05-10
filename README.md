@@ -1,22 +1,24 @@
-﻿# Audio Metadata MVP v0.1-b5
+﻿# Audio Metadata MVP v0.1-b7
 
-`audio-metadata-mvp` is a local single-user audio sample manager core. It scans a folder of audio files, writes schema v1 JSON, supports minimal manual review overrides, searches that JSON with explicit metadata filters, **accepts natural language queries**, **auto-tags audio with objective features**, performs lightweight similarity retrieval from a reference audio file after candidate filtering, and adds a minimal batch-review workflow for real libraries.
+`audio-metadata-mvp` is a local single-user audio sample manager core. It scans a folder of audio files, writes schema v1 JSON, supports minimal manual review overrides, searches that JSON with explicit metadata filters, **accepts natural language queries**, **auto-tags audio with objective features**, performs lightweight similarity retrieval from a reference audio file after candidate filtering, adds CLAP-based semantic retrieval, and can enrich indexed libraries with embedding coverage plus controlled semantic tags.
 
-v0.1-b5 intentionally stays small:
+v0.1-b7 intentionally stays small:
 
 - Local only
 - Single user
 - JSON storage
 - Explicit field search
 - Natural language query (v0.1-b4)
-- **Objective auto-tagging (v0.1-b5 new)**
+- Objective auto-tagging (v0.1-b5)
+- CLAP semantic search (v0.1-b6, optional)
+- Metadata enrichment (v0.1-b7)
 - Lightweight similar retrieval
 - Minimal `review.overrides` editing
 - Batch review presets, grouped candidate discovery, and finer review stats
 
 It does not include a database, vector store, UI, team workflows, cloud sync, segment analysis, retrieval overrides, or ML-based subjective classification.
 
-## v0.1-b5 Capabilities
+## v0.1-b7 Capabilities
 
 - `index`: scan a local directory and export schema v1 JSON
 - `review`: write minimal manual overrides into `review.overrides`
@@ -25,9 +27,10 @@ It does not include a database, vector store, UI, team workflows, cloud sync, se
 - `review-stats`: summarize current override coverage, note prefixes, inferred sources, and common reviewed filename keywords
 - `search`: query the exported JSON with explicit field filters
 - `nl-query`: search with natural language queries (v0.1-b4)
-- **`auto-tag`: auto-tag audio files with objective feature-based labels (v0.1-b5)**
-- **`compute-embeddings`: compute CLAP embeddings for semantic search (v0.1-b6 new, optional)**
-- **`semantic-search`: search audio using natural language with CLAP (v0.1-b6 new, optional)**
+- `auto-tag`: auto-tag audio files with objective feature-based labels (v0.1-b5)
+- `enrich`: combine indexed metadata, embedding coverage, and controlled semantic tags into an enriched library JSON (v0.1-b7 new)
+- `compute-embeddings`: compute CLAP embeddings for semantic search (v0.1-b6, optional)
+- `semantic-search`: search audio using natural language with CLAP (v0.1-b6, optional)
 - `similar`: filter candidates, then rank them against a reference audio file using current numeric metadata
 - Stable schema v1 with reserved space for future `segments`, `model_outputs.auto_tags`, and `retrieval` expansion
 
@@ -271,6 +274,29 @@ python app.py auto-tag /mnt/c/Users/bo/Music/Samples -o tags.json -v
   ]
 }
 ```
+
+### Enrich Metadata (v0.1-b7 new)
+
+Combine indexed library metadata, optional embedding coverage, and optional controlled semantic tags into a new enriched JSON file:
+
+```bash
+python app.py enrich \
+  --input ./out/library.json \
+  --embeddings ./out/embeddings.json \
+  --vocabulary ./config/semantic_tags.json \
+  --semantic-tags \
+  --output ./out/library.enriched.json
+```
+
+Minimal metadata-only enrich without embeddings:
+
+```bash
+python app.py enrich \
+  --input ./out/library.json \
+  --output ./out/library.enriched.json
+```
+
+`enrich` does not write the raw 512-dimensional CLAP embeddings into `library.enriched.json`. It only writes embedding status, embedding references, and semantic tags.
 
 **Integration with schema v1:**
 Auto-tag results can be merged into your library JSON:
@@ -526,4 +552,3 @@ python review_metadata.py --input ./out/library.json --id <record_id> --is-loop 
 python search_metadata.py --input ./out/library.json --keyword horn
 python search_similar.py --input ./out/library.json --reference ./audio/ref.wav --top-k 5
 ```
-
