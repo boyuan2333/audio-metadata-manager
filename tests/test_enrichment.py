@@ -70,3 +70,108 @@ class TestEmbeddingReady:
         assert record["retrieval"]["embedding_model"] == "laion-audioclip-full-2022"
         assert record["retrieval"]["embedding_ref"] == "embeddings.json#audio/warm_guitar.wav"
         assert summary["embeddings_ready"] == 1
+
+
+class TestEmbeddingMissing:
+    """Tests for embedding_status when no match found."""
+
+    def test_enrich_marks_embedding_missing_when_no_match(self):
+        """No matching embedding should result in missing status."""
+        embeddings_data = {
+            "model": "laion-audioclip-full-2022",
+            "embedding_dim": 512,
+            "files": [
+                {"path": "audio/other.wav", "embedding": [0.1] * 512}
+            ],
+        }
+
+        enriched, summary = enrich_payload(
+            _payload_one_record(), embeddings_data=embeddings_data
+        )
+
+        record = enriched["files"][0]
+        assert record["retrieval"]["embedding_status"] == "missing"
+        assert summary["embeddings_missing"] == 1
+
+
+class TestEmbeddingInvalid:
+    """Tests for embedding_status when dimension is wrong."""
+
+    def test_enrich_marks_embedding_invalid_when_dimension_is_wrong(self):
+        """Wrong dimension embedding should result in invalid status."""
+        embeddings_data = {
+            "model": "laion-audioclip-full-2022",
+            "embedding_dim": 512,
+            "files": [
+                {"path": "audio/warm_guitar.wav", "embedding": [0.1] * 3}
+            ],
+        }
+
+        enriched, summary = enrich_payload(
+            _payload_one_record(), embeddings_data=embeddings_data
+        )
+
+        record = enriched["files"][0]
+        assert record["retrieval"]["embedding_status"] == "invalid"
+        assert record["retrieval"]["embedding_model"] == "laion-audioclip-full-2022"
+        assert summary["embeddings_invalid"] == 1
+
+    def test_enrich_marks_embedding_invalid_when_not_a_list(self):
+        """Non-list embedding should result in invalid status."""
+        embeddings_data = {
+            "model": "laion-audioclip-full-2022",
+            "embedding_dim": 512,
+            "files": [
+                {"path": "audio/warm_guitar.wav", "embedding": "not_a_list"}
+            ],
+        }
+
+        enriched, summary = enrich_payload(
+            _payload_one_record(), embeddings_data=embeddings_data
+        )
+
+        record = enriched["files"][0]
+        assert record["retrieval"]["embedding_status"] == "invalid"
+        assert summary["embeddings_invalid"] == 1
+
+
+class TestEmbeddingFilenameFallback:
+    """Tests for filename-based embedding matching."""
+
+    def test_enrich_matches_embedding_by_filename_fallback(self):
+        """When path doesn't match but filename does, should be ready."""
+        embeddings_data = {
+            "model": "laion-audioclip-full-2022",
+            "embedding_dim": 512,
+            "files": [
+                {"path": "/mnt/d/samples/warm_guitar.wav", "embedding": [0.1] * 512}
+            ],
+        }
+
+        enriched, summary = enrich_payload(
+            _payload_one_record(), embeddings_data=embeddings_data
+        )
+
+        record = enriched["files"][0]
+        assert record["retrieval"]["embedding_status"] == "ready"
+        assert summary["embeddings_ready"] == 1
+
+    def test_enrich_prefers_exact_path_over_filename(self):
+        """Exact path match should be preferred over filename match."""
+        embeddings_data = {
+            "model": "laion-audioclip-full-2022",
+            "embedding_dim": 512,
+            "files": [
+                {"path": "audio/warm_guitar.wav", "embedding": [1.0] * 512},
+                {"path": "/other/warm_guitar.wav", "embedding": [0.5] * 512},
+            ],
+        }
+
+        enriched, summary = enrich_payload(
+            _payload_one_record(), embeddings_data=embeddings_data
+        )
+
+        record = enriched["files"][0]
+        assert record["retrieval"]["embedding_status"] == "ready"
+        # Should use the exact path match
+        assert record["retrieval"]["embedding_ref"] == "embeddings.json#audio/warm_guitar.wav"
