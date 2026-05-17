@@ -13,6 +13,8 @@ import export_training_cli as export_training_command
 import clap_embed_cli as clap_embed_command
 import semantic_search_cli as semantic_search_command
 import hybrid_search_cli as hybrid_search_command
+import report_cli as report_command
+import search_cli_v2 as search_v2_command
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -24,7 +26,7 @@ def build_parser() -> argparse.ArgumentParser:
             "run lightweight similar retrieval, batch review fixes, review candidate discovery, "
             "review workflow presets, grouped review candidate discovery, finer review stats, "
             "natural language query, objective auto-tagging, CLAP embedding computation, "
-            "semantic search, and hybrid search."
+            "semantic search, hybrid search, unified search, and library reports."
         ),
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -149,6 +151,26 @@ def build_parser() -> argparse.ArgumentParser:
     hybrid_search_parser.set_defaults(
         handler=hybrid_search_command.run,
         validator=hybrid_search_command.validate_args,
+    )
+
+    report_parser = subparsers.add_parser(
+        "report",
+        help="Generate an aggregate library report (stats, coverage, warnings).",
+        parents=[report_command.build_parser(add_help=False)],
+    )
+    report_parser.set_defaults(
+        handler=report_command.run,
+        validator=report_command.validate_args,
+    )
+
+    search_v2_parser = subparsers.add_parser(
+        "search-v2",
+        help="Unified search: auto-selects keyword, semantic, or hybrid strategy.",
+        parents=[search_v2_command.build_parser(add_help=False)],
+    )
+    search_v2_parser.set_defaults(
+        handler=search_v2_command.run,
+        validator=search_v2_command.validate_args,
     )
 
     return parser
