@@ -4,7 +4,7 @@ Local, single-user CLI tools for indexing, reviewing, searching, tagging, and pr
 
 This project is intentionally small. It uses local files, JSON, and deterministic feature extraction instead of a database, cloud sync, UI, or vector store.
 
-Current version: **v0.1-b6**
+Current version: **v0.1-b8**
 
 ## What It Does
 
