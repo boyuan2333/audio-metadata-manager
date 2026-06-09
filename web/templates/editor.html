@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+
+{% block title %}Metadata Editor{% endblock %}
+{% block page_title %}Metadata Editor{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+    <!-- Left Panel: Search & Select -->
+    <div class="lg:col-span-1 flex flex-col gap-4">
+        <!-- Sample Search -->
+        <div class="bg-surface-container rounded-xl border border-outline-variant/20 p-4">
+            <h3 class="text-sm font-semibold text-on-surface mb-3">Find Sample</h3>
+            <div class="relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">search</span>
+                <input type="text" id="editor-search" placeholder="Search filename..."
+                    class="w-full pl-10 pr-4 py-2 bg-surface-container-high border border-outline-variant/30 rounded-lg text-sm text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-colors"/>
+            </div>
+        </div>
+
+        <!-- File List -->
+        <div class="bg-surface-container rounded-xl border border-outline-variant/20 flex-1 overflow-hidden flex flex-col">
+            <div class="p-4 border-b border-outline-variant/20">
+                <h3 class="text-sm font-semibold text-on-surface">Files</h3>
+            </div>
+            <div id="editor-file-list" class="flex-1 overflow-y-auto custom-scrollbar p-2">
+                <div class="text-center py-8 text-on-surface-variant text-sm">
+                    <span class="material-symbols-outlined text-2xl block mb-1 opacity-50">folder_open</span>
+                    Search to find files
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Panel: Detail & Edit -->
+    <div class="lg:col-span-2 flex flex-col gap-4">
+        <!-- Metadata Detail Panel -->
+        <div class="bg-surface-container rounded-xl border border-outline-variant/20 p-5">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-base font-semibold text-on-surface">Metadata Details</h3>
+                <button id="btn-play-selected" class="w-8 h-8 flex items-center justify-center rounded-full bg-surface-container-high hover:bg-primary/20 transition-colors hidden">
+                    <span class="material-symbols-outlined text-on-surface text-sm">play_arrow</span>
+                </button>
+            </div>
+
+            <!-- Read-only Metadata Display -->
+            <div id="metadata-panel">
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-xs font-medium text-on-surface-variant uppercase tracking-wider block mb-1">Filename</label>
+                            <p id="meta-filename" class="text-sm text-on-surface">--</p>
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-on-surface-variant uppercase tracking-wider block mb-1">Format</label>
+                            <p id="meta-format" class="text-sm text-on-surface">--</p>
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-on-surface-variant uppercase tracking-wider block mb-1">Duration</label>
+                            <p id="meta-duration" class="text-sm text-on-surface font-mono">--</p>
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-on-surface-variant uppercase tracking-wider block mb-1">Sample Rate</label>
+                            <p id="meta-samplerate" class="text-sm text-on-surface">--</p>
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-on-surface-variant uppercase tracking-wider block mb-1">Channels</label>
+                            <p id="meta-channels" class="text-sm text-on-surface">--</p>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-xs font-medium text-on-surface-variant uppercase tracking-wider block mb-1">Tempo (BPM)</label>
+                            <p id="meta-tempo" class="text-sm text-on-surface">--</p>
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-on-surface-variant uppercase tracking-wider block mb-1">Key</label>
+                            <p id="meta-key" class="text-sm text-on-surface">--</p>
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-on-surface-variant uppercase tracking-wider block mb-1">Brightness</label>
+                            <p id="meta-brightness" class="text-sm text-on-surface">--</p>
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-on-surface-variant uppercase tracking-wider block mb-1">File Size</label>
+                            <p id="meta-filesize" class="text-sm text-on-surface">--</p>
+                        </div>
+                        <div>
+                            <label class="text-xs font-medium text-on-surface-variant uppercase tracking-wider block mb-1">Auto Tags</label>
+                            <div id="meta-tags" class="flex flex-wrap gap-1">
+                                <span class="text-xs text-on-surface-variant">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Form: Review Overrides -->
+        <div class="bg-surface-container rounded-xl border border-outline-variant/20 p-5">
+            <h3 class="text-base font-semibold text-on-surface mb-4">Review Overrides</h3>
+            <form id="editor-form" class="space-y-4">
+                <input type="hidden" id="edit-file-id" value=""/>
+
+                <!-- Notes -->
+                <div>
+                    <label for="edit-notes" class="text-xs font-medium text-on-surface-variant uppercase tracking-wider block mb-1">Notes</label>
+                    <textarea id="edit-notes" rows="3" placeholder="Add review notes..."
+                        class="w-full bg-surface-container-high border border-outline-variant/30 rounded-lg text-sm text-on-surface px-3 py-2 placeholder-on-surface-variant/50 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-colors resize-none"></textarea>
+                </div>
+
+                <!-- Manual Tags -->
+                <div>
+                    <label for="edit-tags" class="text-xs font-medium text-on-surface-variant uppercase tracking-wider block mb-1">Manual Tags</label>
+                    <input type="text" id="edit-tags" placeholder="Comma-separated tags..."
+                        class="w-full bg-surface-container-high border border-outline-variant/30 rounded-lg text-sm text-on-surface px-3 py-2 placeholder-on-surface-variant/50 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-colors"/>
+                    <p class="text-xs text-on-surface-variant mt-1">Separate multiple tags with commas.</p>
+                </div>
+
+                <!-- Current Manual Tags Display -->
+                <div id="current-manual-tags" class="hidden">
+                    <label class="text-xs font-medium text-on-surface-variant uppercase tracking-wider block mb-1">Current Manual Tags</label>
+                    <div id="manual-tags-display" class="flex flex-wrap gap-1"></div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex items-center gap-3 pt-2">
+                    <button type="submit" id="btn-save" class="bg-primary text-on-primary px-5 py-2 rounded-lg text-xs font-medium hover:opacity-90 transition-opacity flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
+                        <span class="material-symbols-outlined text-sm">save</span>
+                        Save Overrides
+                    </button>
+                    <button type="button" id="btn-revert" class="px-4 py-2 rounded-lg text-xs font-medium text-on-surface-variant border border-outline-variant/30 hover:bg-surface-container-high transition-colors">
+                        Revert
+                    </button>
+                    <span id="save-status" class="text-xs text-on-surface-variant ml-2"></span>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let selectedFile = null;
+
+    // Search files
+    let searchTimeout;
+    document.getElementById('editor-search').addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => searchFiles(this.value.trim()), 300);
+    });
+
+    async function searchFiles(query) {
+        const list = document.getElementById('editor-file-list');
+        if (!query) {
+            list.innerHTML = '<div class="text-center py-8 text-on-surface-variant text-sm"><span class="material-symbols-outlined text-2xl block mb-1 opacity-50">folder_open</span>Search to find files</div>';
+            return;
+        }
+        list.innerHTML = '<div class="text-center py-8"><span class="material-symbols-outlined text-2xl animate-spin text-on-surface-variant">sync</span></div>';
+
+        try {
+            const resp = await fetch('/api/files?q=' + encodeURIComponent(query) + '&per_page=50');
+            if (resp.ok) {
+                const data = await resp.json();
+                const files = data.files || data || [];
+                if (files.length === 0) {
+                    list.innerHTML = '<div class="text-center py-8 text-on-surface-variant text-sm">No files found.</div>';
+                    return;
+                }
+                list.innerHTML = files.map(f => `
+                    <button onclick="selectFile('${f.id || f.path || ''}')"
+                        class="w-full text-left px-3 py-2 rounded-lg text-sm text-on-surface-variant hover:bg-surface-container-high transition-colors flex items-center gap-2 file-item" data-id="${f.id || f.path || ''}">
+                        <span class="material-symbols-outlined text-base opacity-60">audio_file</span>
+                        <span class="truncate">${f.filename || f.name || '--'}</span>
+                    </button>
+                `).join('');
+            }
+        } catch (e) {
+            list.innerHTML = '<div class="text-center py-8 text-error text-sm">Search error.</div>';
+        }
+    }
+
+    // Select file for editing
+    async function selectFile(id) {
+        // Highlight active
+        document.querySelectorAll('.file-item').forEach(el => el.classList.remove('bg-surface-container-highest', 'text-primary'));
+        const active = document.querySelector(`.file-item[data-id="${id}"]`);
+        if (active) active.classList.add('bg-surface-container-highest', 'text-primary');
+
+        try {
+            const resp = await fetch('/api/files/' + encodeURIComponent(id));
+            if (resp.ok) {
+                const f = await resp.json();
+                selectedFile = f;
+                document.getElementById('edit-file-id').value = id;
+
+                // Populate metadata
+                document.getElementById('meta-filename').textContent = f.filename || f.name || '--';
+                document.getElementById('meta-format').textContent = f.format || '--';
+                document.getElementById('meta-duration').textContent = f.duration || '--';
+                document.getElementById('meta-samplerate').textContent = f.sample_rate || '--';
+                document.getElementById('meta-channels').textContent = f.channels || '--';
+                document.getElementById('meta-tempo').textContent = f.tempo ? f.tempo + ' BPM' : '--';
+                document.getElementById('meta-key').textContent = f.key || '--';
+                document.getElementById('meta-brightness').textContent = f.brightness || '--';
+                document.getElementById('meta-filesize').textContent = f.size || '--';
+
+                // Auto tags
+                const tagsDiv = document.getElementById('meta-tags');
+                if (f.tags && f.tags.length) {
+                    tagsDiv.innerHTML = f.tags.map(t => `<span class="px-2 py-0.5 bg-secondary-container text-on-secondary-container rounded text-xs">${t}</span>`).join('');
+                } else {
+                    tagsDiv.innerHTML = '<span class="text-xs text-on-surface-variant">None</span>';
+                }
+
+                // Load existing overrides
+                document.getElementById('edit-notes').value = f.notes || '';
+                document.getElementById('edit-tags').value = (f.manual_tags || []).join(', ');
+
+                // Show manual tags if any
+                const mtDiv = document.getElementById('current-manual-tags');
+                const mtDisplay = document.getElementById('manual-tags-display');
+                if (f.manual_tags && f.manual_tags.length) {
+                    mtDiv.classList.remove('hidden');
+                    mtDisplay.innerHTML = f.manual_tags.map(t => `<span class="px-2 py-0.5 bg-tertiary/20 text-tertiary rounded text-xs">${t}</span>`).join('');
+                } else {
+                    mtDiv.classList.add('hidden');
+                }
+
+                // Show play button
+                document.getElementById('btn-play-selected').classList.remove('hidden');
+                document.getElementById('btn-play-selected').onclick = () => {
+                    const player = document.getElementById('audio-player');
+                    if (player) {
+                        player.classList.remove('hidden');
+                        document.getElementById('player-filename').textContent = f.filename || f.name;
+                        if (window.ammPlayer) window.ammPlayer.play(id);
+                    }
+                };
+            }
+        } catch (e) {
+            console.warn('Failed to load file details:', e);
+        }
+    }
+
+    // Save overrides
+    document.getElementById('editor-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const id = document.getElementById('edit-file-id').value;
+        if (!id) return;
+
+        const notes = document.getElementById('edit-notes').value.trim();
+        const tagsRaw = document.getElementById('edit-tags').value.trim();
+        const manualTags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
+
+        const btn = document.getElementById('btn-save');
+        btn.disabled = true;
+        document.getElementById('save-status').textContent = 'Saving...';
+
+        try {
+            const resp = await fetch('/api/files/' + encodeURIComponent(id), {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ notes, manual_tags: manualTags })
+            });
+            if (resp.ok) {
+                document.getElementById('save-status').textContent = 'Saved!';
+                setTimeout(() => { document.getElementById('save-status').textContent = ''; }, 3000);
+            } else {
+                document.getElementById('save-status').textContent = 'Error saving.';
+                document.getElementById('save-status').classList.add('text-error');
+            }
+        } catch (e) {
+            document.getElementById('save-status').textContent = 'Network error.';
+        }
+        btn.disabled = false;
+    });
+
+    // Revert to original
+    document.getElementById('btn-revert').addEventListener('click', function() {
+        if (selectedFile) {
+            document.getElementById('edit-notes').value = selectedFile.notes || '';
+            document.getElementById('edit-tags').value = (selectedFile.manual_tags || []).join(', ');
+            document.getElementById('save-status').textContent = 'Reverted.';
+            setTimeout(() => { document.getElementById('save-status').textContent = ''; }, 2000);
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="flex justify-between items-end mb-6">
+    <div>
+        <h2 class="text-lg font-semibold text-primary">Library Overview</h2>
+        <p class="text-sm text-on-surface-variant">Real-time status of your audio catalog.</p>
+    </div>
+    <div class="relative w-72">
+        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">search</span>
+        <input type="text" id="quick-search" placeholder="Quick search..."
+            class="w-full pl-10 pr-4 py-2 bg-surface-container-high border border-outline-variant/30 rounded-lg text-sm text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-colors"/>
+    </div>
+</div>
+
+<!-- Stats Cards Row -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+    <!-- Total Files -->
+    <div class="bg-surface-container p-5 rounded-xl border border-outline-variant/20 flex flex-col justify-between min-h-[140px] hover:border-primary/20 transition-all">
+        <div class="flex justify-between items-start">
+            <span class="p-2 bg-secondary-container rounded-lg text-primary">
+                <span class="material-symbols-outlined">audio_file</span>
+            </span>
+        </div>
+        <div>
+            <p class="text-xs font-medium text-on-surface-variant uppercase tracking-wider mb-1">Total Files</p>
+            <h3 class="text-2xl font-semibold text-primary" id="stat-total-files">--</h3>
+        </div>
+    </div>
+
+    <!-- Formats -->
+    <div class="bg-surface-container p-5 rounded-xl border border-outline-variant/20 flex flex-col justify-between min-h-[140px] hover:border-primary/20 transition-all">
+        <div class="flex justify-between items-start">
+            <span class="p-2 bg-secondary-container rounded-lg text-primary">
+                <span class="material-symbols-outlined">equalizer</span>
+            </span>
+        </div>
+        <div>
+            <p class="text-xs font-medium text-on-surface-variant uppercase tracking-wider mb-1">Formats</p>
+            <h3 class="text-2xl font-semibold text-primary" id="stat-formats">--</h3>
+        </div>
+    </div>
+
+    <!-- Avg Duration -->
+    <div class="bg-surface-container p-5 rounded-xl border border-outline-variant/20 flex flex-col justify-between min-h-[140px] hover:border-primary/20 transition-all">
+        <div class="flex justify-between items-start">
+            <span class="p-2 bg-secondary-container rounded-lg text-primary">
+                <span class="material-symbols-outlined">timer</span>
+            </span>
+        </div>
+        <div>
+            <p class="text-xs font-medium text-on-surface-variant uppercase tracking-wider mb-1">Avg Duration</p>
+            <h3 class="text-2xl font-semibold text-primary" id="stat-avg-duration">--</h3>
+        </div>
+    </div>
+
+    <!-- Total Size -->
+    <div class="bg-surface-container p-5 rounded-xl border border-outline-variant/20 flex flex-col justify-between min-h-[140px] hover:border-primary/20 transition-all">
+        <div class="flex justify-between items-start">
+            <span class="p-2 bg-secondary-container rounded-lg text-primary">
+                <span class="material-symbols-outlined">storage</span>
+            </span>
+        </div>
+        <div>
+            <p class="text-xs font-medium text-on-surface-variant uppercase tracking-wider mb-1">Total Size</p>
+            <h3 class="text-2xl font-semibold text-primary" id="stat-total-size">--</h3>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Files Table -->
+<section class="bg-surface-container rounded-xl border border-outline-variant/20 overflow-hidden">
+    <div class="flex justify-between items-center p-5 border-b border-outline-variant/20">
+        <h3 class="text-base font-semibold text-on-surface">Recent Files</h3>
+        <a href="/library" class="text-xs font-medium text-primary hover:underline">View All</a>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b border-outline-variant/20">
+                    <th class="text-left px-5 py-3 text-xs font-medium text-on-surface-variant uppercase tracking-wider">Filename</th>
+                    <th class="text-left px-5 py-3 text-xs font-medium text-on-surface-variant uppercase tracking-wider">Format</th>
+                    <th class="text-left px-5 py-3 text-xs font-medium text-on-surface-variant uppercase tracking-wider">Duration</th>
+                    <th class="text-left px-5 py-3 text-xs font-medium text-on-surface-variant uppercase tracking-wider">Tempo</th>
+                    <th class="text-left px-5 py-3 text-xs font-medium text-on-surface-variant uppercase tracking-wider">Size</th>
+                </tr>
+            </thead>
+            <tbody id="recent-files-body">
+                <tr>
+                    <td colspan="5" class="px-5 py-10 text-center text-on-surface-variant">
+                        <span class="material-symbols-outlined text-3xl block mb-2 opacity-50">hourglass_empty</span>
+                        Loading recent files...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Load dashboard stats
+    async function loadDashboard() {
+        try {
+            const resp = await fetch('/api/stats');
+            if (resp.ok) {
+                const data = await resp.json();
+                document.getElementById('stat-total-files').textContent = data.total_files ?? '--';
+                document.getElementById('stat-formats').textContent = data.formats ?? '--';
+                document.getElementById('stat-avg-duration').textContent = data.avg_duration ?? '--';
+                document.getElementById('stat-total-size').textContent = data.total_size ?? '--';
+            }
+        } catch (e) {
+            console.warn('Stats API not available:', e);
+        }
+    }
+
+    // Load recent files
+    async function loadRecentFiles() {
+        try {
+            const resp = await fetch('/api/files?limit=10&sort=modified');
+            if (resp.ok) {
+                const data = await resp.json();
+                const files = data.files || data || [];
+                const tbody = document.getElementById('recent-files-body');
+                if (files.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="px-5 py-10 text-center text-on-surface-variant">No files found. Run a scan to populate your library.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = files.map(f => `
+                    <tr class="border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors">
+                        <td class="px-5 py-3 text-on-surface truncate max-w-xs">${f.filename || f.name || '--'}</td>
+                        <td class="px-5 py-3 text-on-surface-variant">${f.format || '--'}</td>
+                        <td class="px-5 py-3 text-on-surface-variant font-mono">${f.duration || '--'}</td>
+                        <td class="px-5 py-3 text-on-surface-variant">${f.tempo ? f.tempo + ' BPM' : '--'}</td>
+                        <td class="px-5 py-3 text-on-surface-variant">${f.size || '--'}</td>
+                    </tr>
+                `).join('');
+            }
+        } catch (e) {
+            console.warn('Files API not available:', e);
+        }
+    }
+
+    // Quick search handler
+    document.getElementById('quick-search')?.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && this.value.trim()) {
+            window.location.href = '/library?q=' + encodeURIComponent(this.value.trim());
+        }
+    });
+
+    loadDashboard();
+    loadRecentFiles();
+</script>
+{% endblock %}

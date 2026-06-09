@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SonicTag Pro - Audio Metadata Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "on-tertiary-container": "#525c6d",
+                "on-secondary-fixed": "#121c28",
+                "error-container": "#93000a",
+                "on-error-container": "#ffdad6",
+                "surface-container-lowest": "#0c0e10",
+                "error": "#ffb4ab",
+                "on-primary": "#2c3136",
+                "secondary-container": "#404a57",
+                "on-secondary-container": "#afb9c9",
+                "outline": "#8f9194",
+                "secondary-fixed-dim": "#bdc7d8",
+                "primary-fixed-dim": "#c3c7cd",
+                "tertiary-fixed-dim": "#bdc7db",
+                "on-tertiary-fixed": "#121c2a",
+                "secondary-fixed": "#d9e3f4",
+                "surface-container-low": "#1a1c1e",
+                "background": "#121416",
+                "on-primary-container": "#585c61",
+                "inverse-on-surface": "#2f3133",
+                "outline-variant": "#44474a",
+                "surface-container": "#1e2022",
+                "on-primary-fixed-variant": "#43474c",
+                "tertiary-container": "#cbd5e9",
+                "on-surface": "#e2e2e5",
+                "inverse-primary": "#5a5f64",
+                "primary": "#eef1f7",
+                "surface-dim": "#121416",
+                "on-surface-variant": "#c5c6ca",
+                "surface-container-highest": "#333537",
+                "surface-variant": "#333537",
+                "tertiary": "#ebf1ff",
+                "primary-fixed": "#dfe3e9",
+                "on-background": "#e2e2e5",
+                "inverse-surface": "#e2e2e5",
+                "secondary": "#bdc7d8",
+                "on-secondary-fixed-variant": "#3e4755",
+                "surface-container-high": "#282a2c",
+                "surface-tint": "#c3c7cd",
+                "on-secondary": "#27313e",
+                "on-tertiary": "#273140",
+                "on-primary-fixed": "#171c20",
+                "on-error": "#690005",
+                "on-tertiary-fixed-variant": "#3d4757",
+                "tertiary-fixed": "#d9e3f7",
+                "surface-bright": "#38393c",
+                "primary-container": "#d1d5db",
+                "surface": "#121416"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {
+                "unit": "4px",
+                "lg": "24px",
+                "margin": "32px",
+                "md": "16px",
+                "xs": "4px",
+                "xl": "40px",
+                "sm": "8px",
+                "gutter": "24px",
+                "container-max": "1280px"
+        },
+        "fontFamily": {
+                "headline-lg": [
+                        "Inter"
+                ],
+                "headline-lg-mobile": [
+                        "Inter"
+                ],
+                "label-sm": [
+                        "Inter"
+                ],
+                "body-lg": [
+                        "Inter"
+                ],
+                "label-md": [
+                        "Inter"
+                ],
+                "body-md": [
+                        "Inter"
+                ],
+                "headline-md": [
+                        "Inter"
+                ]
+        },
+        "fontSize": {
+                "headline-lg": [
+                        "32px",
+                        {
+                                "lineHeight": "1.2",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "600"
+                        }
+                ],
+                "headline-lg-mobile": [
+                        "24px",
+                        {
+                                "lineHeight": "1.2",
+                                "letterSpacing": "-0.01em",
+                                "fontWeight": "600"
+                        }
+                ],
+                "label-sm": [
+                        "11px",
+                        {
+                                "lineHeight": "1",
+                                "letterSpacing": "0.02em",
+                                "fontWeight": "500"
+                        }
+                ],
+                "body-lg": [
+                        "16px",
+                        {
+                                "lineHeight": "1.6",
+                                "letterSpacing": "0",
+                                "fontWeight": "400"
+                        }
+                ],
+                "label-md": [
+                        "12px",
+                        {
+                                "lineHeight": "1",
+                                "letterSpacing": "0.05em",
+                                "fontWeight": "500"
+                        }
+                ],
+                "body-md": [
+                        "14px",
+                        {
+                                "lineHeight": "1.5",
+                                "letterSpacing": "0",
+                                "fontWeight": "400"
+                        }
+                ],
+                "headline-md": [
+                        "20px",
+                        {
+                                "lineHeight": "1.4",
+                                "letterSpacing": "-0.01em",
+                                "fontWeight": "600"
+                        }
+                ]
+        }
+},
+    },
+  }
+</script>
+<style>
+        body {
+            background-color: #121416;
+            color: #e2e2e5;
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #44474a;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="flex min-h-screen overflow-hidden dark">
+<!-- SideNavBar Anchor -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-surface-container flex flex-col p-md gap-sm border-r border-outline-variant/30 z-50">
+<div class="mb-xl px-sm">
+<h1 class="font-headline-md text-headline-md text-primary">Studio Alpha</h1>
+<p class="font-label-md text-label-md text-on-surface-variant">Metadata Specialist</p>
+</div>
+<nav class="flex-1 flex flex-col gap-xs">
+<!-- Active Tab: Dashboard -->
+<a class="flex items-center gap-md px-md py-sm text-primary font-semibold bg-surface-container-highest rounded-lg transition-colors cursor-pointer" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors cursor-pointer group" href="#">
+<span class="material-symbols-outlined" data-icon="library_music">library_music</span>
+<span class="font-label-md text-label-md">Library</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors cursor-pointer group" href="#">
+<span class="material-symbols-outlined" data-icon="edit_note">edit_note</span>
+<span class="font-label-md text-label-md">Metadata Editor</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors cursor-pointer group" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-outline-variant/20 pt-md">
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors cursor-pointer" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="font-label-md text-label-md">Help Center</span>
+</a>
+<div class="mt-md flex items-center gap-sm px-md">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center overflow-hidden">
+<img alt="Audio Engineer Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA901Tp3M9TZ4o4FdgXKJUGGYJ8PjEMOegAG29_4ppdyeqkntwhsZ1NyhDk2DUL8b1kkzbFVsXHIfX28M_2E-Fgu9kXpT3vlXu8KnW2_BAuEWAFqp6ah0FFqX4LkZBV0om_jdS1F4ze7jm1XCIkfOfR-gOuGoo2ZhVzSBeUyM0r4p2cca0Ck8GXg1OZSNeziC_Gce3rYM2Oda7guMZIY5ZBtEK2Yx6a4eeP7FeIX1k3TCwFKOL74PTbjG_3svPh5oondk-mTZiJZ78J"/>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-bold">Studio Alpha</span>
+<span class="text-[10px] text-on-surface-variant uppercase tracking-wider">Pro Tier</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 flex-1 flex flex-col h-screen bg-background">
+<!-- TopNavBar Anchor -->
+<header class="w-full h-16 flex justify-between items-center px-margin border-b border-outline-variant/30 bg-surface">
+<div class="flex items-center gap-xl">
+<div class="font-headline-md text-headline-md font-semibold text-primary">SonicTag Pro</div>
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]" data-icon="search">search</span>
+<input class="w-full pl-10 pr-md py-xs bg-surface-container-low border border-outline-variant rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:ring-1 focus:ring-primary/20 transition-all placeholder:text-on-surface-variant" placeholder="Search tracks or logs..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="p-sm rounded-full hover:bg-surface-variant/50 transition-colors text-on-surface-variant cursor-pointer">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-sm rounded-full hover:bg-surface-variant/50 transition-colors text-on-surface-variant cursor-pointer">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Dashboard Content -->
+<div class="flex-1 p-margin overflow-y-auto custom-scrollbar">
+<div class="flex justify-between items-end mb-xl">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Library Overview</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Real-time status of your audio catalog and processing queue.</p>
+</div>
+<button class="bg-primary text-on-primary px-lg py-sm rounded-lg font-label-md text-label-md hover:opacity-90 transition-opacity flex items-center gap-sm">
+<span class="material-symbols-outlined text-[18px]" data-icon="add">add</span>
+                    Ingest Files
+                </button>
+</div>
+<!-- Bento Grid Stats -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter mb-xl">
+<!-- Total Tracks -->
+<div class="md:col-span-2 bg-surface-container p-lg rounded-xl border border-outline-variant/20 flex flex-col justify-between min-h-[160px] group hover:border-primary/20 transition-all">
+<div class="flex justify-between items-start">
+<span class="p-sm bg-secondary-container rounded-lg text-primary">
+<span class="material-symbols-outlined" data-icon="library_music">library_music</span>
+</span>
+<span class="text-on-secondary-container font-label-md text-label-md bg-secondary-container px-sm py-xs rounded-full">+4.2%</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest mb-xs">Total Tracks</p>
+<h3 class="font-headline-lg text-headline-lg text-primary">24,812</h3>
+</div>
+</div>
+<!-- Missing Metadata -->
+<div class="bg-surface-container p-lg rounded-xl border border-outline-variant/20 flex flex-col justify-between group hover:border-error/20 transition-all">
+<div class="flex justify-between items-start">
+<span class="p-sm bg-error-container/30 rounded-lg text-error">
+<span class="material-symbols-outlined" data-icon="warning">warning</span>
+</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest mb-xs">Critical Fixes</p>
+<h3 class="font-headline-lg text-headline-lg text-on-surface">184</h3>
+</div>
+</div>
+<!-- Recently Processed -->
+<div class="bg-primary-container p-lg rounded-xl border border-outline-variant/20 flex flex-col justify-between group">
+<div class="flex justify-between items-start">
+<span class="p-sm bg-on-primary-container/10 rounded-lg text-on-primary-fixed">
+<span class="material-symbols-outlined" data-icon="bolt">bolt</span>
+</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-on-primary-fixed-variant uppercase tracking-widest mb-xs">Daily Syncs</p>
+<h3 class="font-headline-lg text-headline-lg text-on-primary-fixed">1,204</h3>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+<!-- Recent Activity / Logs (Asymmetric Layout) -->
+<div class="lg:col-span-2 space-y-gutter">
+<section class="bg-surface-container rounded-xl p-lg border border-outline-variant/20">
+<div class="flex justify-between items-center mb-lg">
+<h3 class="font-headline-md text-headline-md text-on-surface">Recent Activity</h3>
+<button class="text-primary font-label-md text-label-md hover:underline">View All</button>
+</div>
+<div class="space-y-sm">
+<!-- Log Item 1 -->
+<div class="flex items-center gap-md p-md bg-surface-container-low rounded-lg border border-outline-variant/10 group hover:shadow-sm transition-shadow">
+<div class="w-10 h-10 rounded bg-secondary-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="sync">sync</span>
+</div>
+<div class="flex-1">
+<h4 class="font-label-md text-label-md text-on-surface font-semibold">Batch Process: Cinematic Strings Vol 2</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">42 files updated with ISRC codes</p>
+</div>
+<div class="text-right">
+<p class="font-label-md text-label-md text-on-surface-variant">2m ago</p>
+<span class="text-[10px] text-on-tertiary-fixed-variant bg-tertiary-fixed px-sm py-[2px] rounded-full font-bold">SUCCESS</span>
+</div>
+</div>
+<!-- Log Item 2 -->
+<div class="flex items-center gap-md p-md bg-surface-container-low rounded-lg border border-outline-variant/10 group hover:shadow-sm transition-shadow">
+<div class="w-10 h-10 rounded bg-secondary-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="cloud_upload">cloud_upload</span>
+</div>
+<div class="flex-1">
+<h4 class="font-label-md text-label-md text-on-surface font-semibold">Dropbox Ingestion: Night_Ambient_Stems</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">Parsing metadata from ID3v2.4 tags</p>
+</div>
+<div class="text-right">
+<p class="font-label-md text-label-md text-on-surface-variant">14m ago</p>
+<span class="text-[10px] text-on-primary-fixed-variant bg-primary-fixed px-sm py-[2px] rounded-full font-bold">IN PROGRESS</span>
+</div>
+</div>
+<!-- Log Item 3 -->
+<div class="flex items-center gap-md p-md bg-surface-container-low rounded-lg border border-outline-variant/10 group hover:shadow-sm transition-shadow">
+<div class="w-10 h-10 rounded bg-error-container/20 flex items-center justify-center text-error">
+<span class="material-symbols-outlined" data-icon="error">error</span>
+</div>
+<div class="flex-1">
+<h4 class="font-label-md text-label-md text-on-surface font-semibold">Validation Error: Unknown_Artist_01.wav</h4>
+<p class="font-body-md text-body-md text-on-surface-variant">Missing mandatory 'Genre' field for publishing</p>
+</div>
+<div class="text-right">
+<p class="font-label-md text-label-md text-on-surface-variant">1h ago</p>
+<span class="text-[10px] text-on-error-container bg-error-container px-sm py-[2px] rounded-full font-bold">FAILED</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Sidebar Content (Recently Processed Files) -->
+<div class="lg:col-span-1">
+<section class="bg-surface-container-high rounded-xl p-lg border border-outline-variant/20 h-full">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-lg">Library Focus</h3>
+<!-- Visual Card for AI Tagging -->
+<div class="relative overflow-hidden rounded-lg mb-lg aspect-video flex flex-col justify-end p-md bg-surface-container-highest">
+<img class="absolute inset-0 w-full h-full object-cover opacity-30 mix-blend-luminosity" data-alt="A macro shot of a vintage analog audio mixer board with soft focus on the sliders and glowing LED meters. The lighting is moody and professional, using a cool-toned slate and charcoal palette with subtle warm highlights on the knobs. The atmosphere is sophisticated and technically precise, reflecting a high-end studio environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgDEa0ph1NpYnr91sDpkPoaA6MwP-dJLHXkQJpWcgYodMLGDJKIh0LLLAgXjQUhttqZumRS5pdIfYie8zl1zpKNB3pTf4oWNLk6lhXoOxraMAV8FoZZ4yKf4SON_-nYn40GyYTWZR8sjIQNAjBuc3Splzo8PjEMHd3_z4Nu_UWCYAUnYlk9L0spQxz4DvEec4M5u4mNf9ng7-VkRd7RtZrbQQmIcCpaDzAVQHG0h7EEffSICyivyLPPs9e2b-GvDhGVI3s2xgAjU5y"/>
+<div class="relative z-10">
+<h4 class="font-label-md text-label-md text-primary font-bold">AI Auto-Tagging</h4>
+<p class="text-[12px] text-on-surface-variant leading-tight">Identify BPM and key signatures automatically for 120 files.</p>
+<button class="mt-sm w-full bg-primary text-on-primary py-xs rounded font-label-md text-label-md hover:opacity-90 transition-opacity">Resume Queue</button>
+</div>
+</div>
+<div class="space-y-md">
+<div class="flex items-center justify-between border-b border-outline-variant/20 pb-sm">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Top Formats</span>
+<span class="font-label-md text-label-md text-on-surface">FLAC (62%)</span>
+</div>
+<div class="flex items-center justify-between border-b border-outline-variant/20 pb-sm">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Storage Used</span>
+<span class="font-label-md text-label-md text-on-surface">1.2 TB / 2.0 TB</span>
+</div>
+<div class="w-full bg-surface-container rounded-full h-1.5 overflow-hidden">
+<div class="bg-primary h-full w-[60%]"></div>
+</div>
+</div>
+<div class="mt-xl">
+<h4 class="font-label-md text-label-md text-on-surface font-semibold mb-md">Quick Filter</h4>
+<div class="flex flex-wrap gap-xs">
+<span class="px-sm py-xs bg-surface-container-low border border-outline-variant/20 rounded-full font-label-md text-label-md text-on-surface cursor-pointer hover:bg-surface-container-highest">24-bit</span>
+<span class="px-sm py-xs bg-surface-container-low border border-outline-variant/20 rounded-full font-label-md text-label-md text-on-surface cursor-pointer hover:bg-surface-container-highest">48kHz</span>
+<span class="px-sm py-xs bg-surface-container-low border border-outline-variant/20 rounded-full font-label-md text-label-md text-on-surface cursor-pointer hover:bg-surface-container-highest">Unpublished</span>
+<span class="px-sm py-xs bg-surface-container-low border border-outline-variant/20 rounded-full font-label-md text-label-md text-on-surface cursor-pointer hover:bg-surface-container-highest">Missing Art</span>
+</div>
+</div>
+</section>
+</div>
+</div>
+</div>
+</main>
+<!-- Micro-interaction Scripts -->
+<script>
+        document.querySelectorAll('.cursor-pointer').forEach(item => {
+            item.addEventListener('mousedown', () => {
+                item.style.transform = 'scale(0.98)';
+                item.style.opacity = '0.9';
+            });
+            item.addEventListener('mouseup', () => {
+                item.style.transform = 'scale(1)';
+                item.style.opacity = '1';
+            });
+            item.addEventListener('mouseleave', () => {
+                item.style.transform = 'scale(1)';
+                item.style.opacity = '1';
+            });
+        });
+
+        // Simple search focus effect
+        const searchInput = document.querySelector('input');
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.classList.add('ring-2', 'ring-primary/20');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.classList.remove('ring-2', 'ring-primary/20');
+        });
+    </script>
+</body></html>

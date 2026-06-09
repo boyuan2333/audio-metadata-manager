@@ -4,7 +4,7 @@ Local, single-user CLI tools for indexing, reviewing, searching, tagging, and pr
 
 This project is intentionally small. It uses local files, JSON, and deterministic feature extraction instead of a database, cloud sync, UI, or vector store.
 
-Current version: **v0.1-b8**
+Current version: **v0.1-b9**
 
 ## What It Does
 
@@ -367,6 +367,46 @@ python review_metadata.py --input ./out/library.json --id <record_id> --is-loop 
 python search_metadata.py --input ./out/library.json --keyword horn
 python search_similar.py --input ./out/library.json --reference ./audio/ref.wav --top-k 5
 ```
+
+## Web UI (v0.1-b9)
+
+### Quick Start
+
+```bash
+# Install dependencies
+pip install fastapi uvicorn jinja2
+
+# Start the server
+python web_server.py --library ./out/library.json --samples ./audio
+
+# Or with environment variables
+AMM_LIBRARY=./out/library.json AMM_SAMPLES=./audio python web_server.py
+
+# Open in browser
+open http://localhost:8000
+```
+
+### Pages
+
+- **Dashboard** (`/`) — Library overview with stats cards and quick search
+- **Library** (`/library`) — Browse and search samples with filters
+- **Editor** (`/editor`) — View and edit sample metadata
+- **Settings** (`/settings`) — Configuration and library info
+
+### API Endpoints
+
+- `GET /api/search?q={query}&limit={n}` — Search the library
+- `GET /api/audio/{file_path}` — Stream audio for playback
+- `GET /api/report` — Library statistics
+- `GET /api/sample/{id}` — Sample details
+- `PUT /api/sample/{id}/review` — Save review overrides
+
+### Configuration
+
+- `--library` / `AMM_LIBRARY` — Path to library JSON (default: `./out/library.json`)
+- `--samples` / `AMM_SAMPLES` — Path to audio samples directory (default: `./audio`)
+- `--port` — Server port (default: `8000`)
+- `--host` — Server host (default: `0.0.0.0`)
 
 ## Current Limits
 

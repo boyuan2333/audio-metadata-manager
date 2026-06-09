@@ -100,6 +100,31 @@ def unified_search(
     return [_to_result(r) for r in raw]
 
 
+def execute_search(
+    library_path: str | Path,
+    query: str,
+    *,
+    limit: int = 20,
+) -> list[dict[str, Any]]:
+    """Convenience wrapper used by the web API.
+
+    Parameters
+    ----------
+    library_path:
+        Path to the library JSON file.
+    query:
+        Search query string.
+    limit:
+        Maximum number of results.
+
+    Returns
+    -------
+    list[dict]
+        Search results in the public format.
+    """
+    return unified_search(query, library_path, top_k=limit)
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Keyword search
 # ──────────────────────────────────────────────────────────────────────────────

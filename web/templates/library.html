@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+
+{% block title %}Library{% endblock %}
+{% block page_title %}Library{% endblock %}
+
+{% block content %}
+<!-- Search & Filters -->
+<div class="bg-surface-container rounded-xl border border-outline-variant/20 p-5 mb-6">
+    <form id="search-form" class="flex flex-col gap-4">
+        <!-- Search Bar -->
+        <div class="relative flex-1">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">search</span>
+            <input type="text" id="lib-search" name="q" placeholder="Search by filename, tag, or keyword..."
+                value="{{ request.query_params.get('q', '') }}"
+                class="w-full pl-10 pr-4 py-2.5 bg-surface-container-high border border-outline-variant/30 rounded-lg text-sm text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-colors"/>
+        </div>
+
+        <!-- Filter Row -->
+        <div class="flex flex-wrap items-end gap-4">
+            <!-- Format Filter -->
+            <div class="flex flex-col gap-1">
+                <label class="text-xs font-medium text-on-surface-variant uppercase tracking-wider">Format</label>
+                <select id="filter-format" name="format"
+                    class="bg-surface-container-high border border-outline-variant/30 rounded-lg text-sm text-on-surface px-3 py-2 pr-8 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-colors">
+                    <option value="">All Formats</option>
+                    <option value="wav">WAV</option>
+                    <option value="mp3">MP3</option>
+                    <option value="flac">FLAC</option>
+                    <option value="ogg">OGG</option>
+                    <option value="aac">AAC</option>
+                    <option value="m4a">M4A</option>
+                </select>
+            </div>
+
+            <!-- Brightness Filter -->
+            <div class="flex flex-col gap-1">
+                <label class="text-xs font-medium text-on-surface-variant uppercase tracking-wider">Brightness</label>
+                <select id="filter-brightness" name="brightness"
+                    class="bg-surface-container-high border border-outline-variant/30 rounded-lg text-sm text-on-surface px-3 py-2 pr-8 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-colors">
+                    <option value="">Any</option>
+                    <option value="dark">Dark</option>
+                    <option value="neutral">Neutral</option>
+                    <option value="bright">Bright</option>
+                </select>
+            </div>
+
+            <!-- Tempo Range -->
+            <div class="flex flex-col gap-1">
+                <label class="text-xs font-medium text-on-surface-variant uppercase tracking-wider">Tempo Min</label>
+                <input type="number" id="filter-tempo-min" name="tempo_min" placeholder="60" min="0" max="999"
+                    class="w-24 bg-surface-container-high border border-outline-variant/30 rounded-lg text-sm text-on-surface px-3 py-2 placeholder-on-surface-variant/50 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-colors"/>
+            </div>
+            <div class="flex flex-col gap-1">
+                <label class="text-xs font-medium text-on-surface-variant uppercase tracking-wider">Tempo Max</label>
+                <input type="number" id="filter-tempo-max" name="tempo_max" placeholder="180" min="0" max="999"
+                    class="w-24 bg-surface-container-high border border-outline-variant/30 rounded-lg text-sm text-on-surface px-3 py-2 placeholder-on-surface-variant/50 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-colors"/>
+            </div>
+
+            <!-- Search Button -->
+            <button type="submit" class="bg-primary text-on-primary px-5 py-2 rounded-lg text-xs font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">search</span>
+                Search
+            </button>
+            <button type="button" id="btn-clear" class="px-4 py-2 rounded-lg text-xs font-medium text-on-surface-variant border border-outline-variant/30 hover:bg-surface-container-high transition-colors">
+                Clear
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Results Table -->
+<section class="bg-surface-container rounded-xl border border-outline-variant/20 overflow-hidden">
+    <div class="flex justify-between items-center p-5 border-b border-outline-variant/20">
+        <h3 class="text-base font-semibold text-on-surface">Results</h3>
+        <span id="result-count" class="text-xs text-on-surface-variant">-- items</span>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b border-outline-variant/20">
+                    <th class="text-left px-5 py-3 text-xs font-medium text-on-surface-variant uppercase tracking-wider w-10"></th>
+                    <th class="text-left px-5 py-3 text-xs font-medium text-on-surface-variant uppercase tracking-wider">Filename</th>
+                    <th class="text-left px-5 py-3 text-xs font-medium text-on-surface-variant uppercase tracking-wider">Format</th>
+                    <th class="text-left px-5 py-3 text-xs font-medium text-on-surface-variant uppercase tracking-wider">Duration</th>
+                    <th class="text-left px-5 py-3 text-xs font-medium text-on-surface-variant uppercase tracking-wider">Tempo</th>
+                    <th class="text-left px-5 py-3 text-xs font-medium text-on-surface-variant uppercase tracking-wider">Tags</th>
+                </tr>
+            </thead>
+            <tbody id="results-body">
+                <tr>
+                    <td colspan="6" class="px-5 py-10 text-center text-on-surface-variant">
+                        <span class="material-symbols-outlined text-3xl block mb-2 opacity-50">music_note</span>
+                        Use the search above to find tracks.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex items-center justify-between p-5 border-t border-outline-variant/20">
+        <button id="btn-prev" disabled class="px-4 py-2 rounded-lg text-xs font-medium text-on-surface-variant border border-outline-variant/30 hover:bg-surface-container-high transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">chevron_left</span>
+            Previous
+        </button>
+        <div class="flex items-center gap-2">
+            <span id="page-info" class="text-xs text-on-surface-variant">Page 1 of 1</span>
+        </div>
+        <button id="btn-next" disabled class="px-4 py-2 rounded-lg text-xs font-medium text-on-surface-variant border border-outline-variant/30 hover:bg-surface-container-high transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1">
+            Next
+            <span class="material-symbols-outlined text-sm">chevron_right</span>
+        </button>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let currentPage = 1;
+    const perPage = 25;
+    let totalPages = 1;
+
+    function getSearchParams() {
+        const p = new URLSearchParams();
+        const q = document.getElementById('lib-search').value.trim();
+        const fmt = document.getElementById('filter-format').value;
+        const bright = document.getElementById('filter-brightness').value;
+        const tMin = document.getElementById('filter-tempo-min').value;
+        const tMax = document.getElementById('filter-tempo-max').value;
+        if (q) p.set('q', q);
+        if (fmt) p.set('format', fmt);
+        if (bright) p.set('brightness', bright);
+        if (tMin) p.set('tempo_min', tMin);
+        if (tMax) p.set('tempo_max', tMax);
+        p.set('page', currentPage);
+        p.set('per_page', perPage);
+        return p;
+    }
+
+    async function loadResults() {
+        const params = getSearchParams();
+        const tbody = document.getElementById('results-body');
+        tbody.innerHTML = '<tr><td colspan="6" class="px-5 py-10 text-center text-on-surface-variant"><span class="material-symbols-outlined animate-spin text-2xl">sync</span></td></tr>';
+
+        try {
+            const resp = await fetch('/api/files?' + params.toString());
+            if (resp.ok) {
+                const data = await resp.json();
+                const files = data.files || data || [];
+                const total = data.total || files.length;
+                totalPages = Math.max(1, Math.ceil(total / perPage));
+
+                document.getElementById('result-count').textContent = total + ' items';
+                document.getElementById('page-info').textContent = 'Page ' + currentPage + ' of ' + totalPages;
+                document.getElementById('btn-prev').disabled = currentPage <= 1;
+                document.getElementById('btn-next').disabled = currentPage >= totalPages;
+
+                if (files.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="px-5 py-10 text-center text-on-surface-variant">No results found.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = files.map(f => `
+                    <tr class="border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors group">
+                        <td class="px-3 py-3">
+                            <button onclick="playFile('${f.id || f.path || ''}', '${(f.filename || f.name || '').replace(/'/g, "\\'")}')"
+                                class="w-8 h-8 flex items-center justify-center rounded-full bg-surface-container-high hover:bg-primary/20 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer">
+                                <span class="material-symbols-outlined text-on-surface text-sm">play_arrow</span>
+                            </button>
+                        </td>
+                        <td class="px-5 py-3 text-on-surface truncate max-w-xs">${f.filename || f.name || '--'}</td>
+                        <td class="px-5 py-3">
+                            <span class="px-2 py-0.5 bg-surface-container-high rounded text-xs font-medium text-on-surface-variant">${f.format || '--'}</span>
+                        </td>
+                        <td class="px-5 py-3 text-on-surface-variant font-mono">${f.duration || '--'}</td>
+                        <td class="px-5 py-3 text-on-surface-variant">${f.tempo ? f.tempo + ' BPM' : '--'}</td>
+                        <td class="px-5 py-3 text-on-surface-variant">
+                            ${(f.tags || []).slice(0, 3).map(t => '<span class="inline-block px-2 py-0.5 bg-secondary-container text-on-secondary-container rounded text-xs mr-1">' + t + '</span>').join('')}
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        } catch (e) {
+            tbody.innerHTML = '<tr><td colspan="6" class="px-5 py-10 text-center text-error">Error loading results.</td></tr>';
+            console.warn('Library API error:', e);
+        }
+    }
+
+    function playFile(id, filename) {
+        const player = document.getElementById('audio-player');
+        if (player) {
+            player.classList.remove('hidden');
+            document.getElementById('player-filename').textContent = filename;
+            // Actual audio loading would be handled by app.js
+            if (window.ammPlayer) {
+                window.ammPlayer.play(id);
+            }
+        }
+    }
+
+    // Form submission
+    document.getElementById('search-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        currentPage = 1;
+        loadResults();
+    });
+
+    // Clear filters
+    document.getElementById('btn-clear').addEventListener('click', function() {
+        document.getElementById('lib-search').value = '';
+        document.getElementById('filter-format').value = '';
+        document.getElementById('filter-brightness').value = '';
+        document.getElementById('filter-tempo-min').value = '';
+        document.getElementById('filter-tempo-max').value = '';
+        currentPage = 1;
+        loadResults();
+    });
+
+    // Pagination
+    document.getElementById('btn-prev').addEventListener('click', function() {
+        if (currentPage > 1) { currentPage--; loadResults(); }
+    });
+    document.getElementById('btn-next').addEventListener('click', function() {
+        if (currentPage < totalPages) { currentPage++; loadResults(); }
+    });
+
+    // Auto-load if query param present
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('q')) {
+        document.getElementById('lib-search').value = urlParams.get('q');
+        loadResults();
+    }
+</script>
+{% endblock %}

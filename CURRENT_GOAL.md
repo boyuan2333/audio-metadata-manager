@@ -43,8 +43,8 @@
 - [ ] Call report module, return JSON stats
 
 ### T5: Sample Detail + Edit API
-- [ ] `web/api_sample.py` — GET /api/sample/{id}, PUT /api/sample/{id}/review
-- [ ] Read/write review overrides
+- [x] `web/api_sample.py` — GET /api/sample/{id}, PUT /api/sample/{id}/review
+- [x] Read/write review overrides
 
 ### T6: Search Page (Frontend)
 - [ ] `web/static/index.html` — Search box, filters, results table, audio player
