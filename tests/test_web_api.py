@@ -24,25 +24,30 @@ class TestSearchAPI:
     """Tests for GET /api/search."""
 
     def test_search_returns_results(self, test_client):
-        """GET /api/search?q=drums — should return 200 with a non-empty list."""
+        """GET /api/search?q=drums — should return 200 with a non-empty result envelope."""
         resp = test_client.get("/api/search", params={"q": "drums"})
         assert resp.status_code == 200
         data = resp.json()
-        assert isinstance(data, list)
-        assert len(data) > 0
+        assert set(data) == {"query", "total", "limit", "offset", "results"}
+        assert data["query"] == "drums"
+        assert data["limit"] == 25
+        assert data["offset"] == 0
+        assert data["total"] == len(data["results"])
+        assert len(data["results"]) > 0
         # Each result should have the expected keys
-        for item in data:
+        for item in data["results"]:
             assert "file_name" in item
             assert "score" in item
             assert "metadata" in item
 
     def test_search_no_results(self, test_client):
-        """GET /api/search?q=xyznonexistent123 — returns 200 with empty list."""
+        """GET /api/search?q=xyznonexistent123 — returns 200 with empty results."""
         resp = test_client.get("/api/search", params={"q": "xyznonexistent123"})
         assert resp.status_code == 200
         data = resp.json()
-        assert isinstance(data, list)
-        assert len(data) == 0
+        assert data["query"] == "xyznonexistent123"
+        assert data["total"] == 0
+        assert data["results"] == []
 
     def test_search_missing_query_param(self, test_client):
         """GET /api/search (no q param) — returns 422 validation error."""

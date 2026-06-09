@@ -6,6 +6,8 @@ This project is intentionally small. It uses local files, JSON, and deterministi
 
 Current version: **v0.1-b9**
 
+Architecture direction: see the [AMM architecture roadmap](docs/development/amm-architecture-roadmap.md) for the planned Core library, CLI, and Client split.
+
 ## What It Does
 
 Audio Metadata Manager helps you turn a folder of samples into a searchable metadata library.
@@ -76,6 +78,20 @@ Dependencies are listed in `requirements.txt`:
 - `soundfile`
 
 ## Quick Start
+
+### Windows Web UI
+
+From Command Prompt or PowerShell on Windows, install the dependencies, create a library JSON, then start the local web UI:
+
+```bat
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+python app.py index --input .\audio --output .\out\library.json --recursive
+scripts\start_web_ui.bat
+```
+
+The launcher uses `AMM_LIBRARY`, `AMM_SAMPLES`, and `AMM_PORT` when set. Defaults are `.\out\library.json`, `.\audio`, and `8000`.
 
 Create a metadata library from an audio folder:
 

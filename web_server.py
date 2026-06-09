@@ -19,7 +19,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.requests import Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 
 # ── Config (set on startup, read by API routes) ──────────────────────
 _library_path: str = ""
@@ -55,24 +55,36 @@ app.include_router(sample_router, prefix="/api")
 
 
 # ── Page routes ──────────────────────────────────────────────────────
+def render_page(request: Request, template_name: str):
+    try:
+        return templates.TemplateResponse(request, template_name)
+    except Exception:
+        return templates.TemplateResponse(request, "error.html", status_code=500)
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return Response(status_code=204)
+
+
 @app.get("/", response_class=HTMLResponse)
 async def dashboard(request: Request):
-    return templates.TemplateResponse(request, "dashboard.html")
+    return render_page(request, "dashboard.html")
 
 
 @app.get("/library", response_class=HTMLResponse)
 async def library(request: Request):
-    return templates.TemplateResponse(request, "library.html")
+    return render_page(request, "library.html")
 
 
 @app.get("/editor", response_class=HTMLResponse)
 async def editor(request: Request):
-    return templates.TemplateResponse(request, "editor.html")
+    return render_page(request, "editor.html")
 
 
 @app.get("/settings", response_class=HTMLResponse)
 async def settings(request: Request):
-    return templates.TemplateResponse(request, "settings.html")
+    return render_page(request, "settings.html")
 
 
 # ── CLI ──────────────────────────────────────────────────────────────

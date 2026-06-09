@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Page Unavailable{% endblock %}
+{% block page_title %}Page Unavailable{% endblock %}
+
+{% block content %}
+<section class="max-w-2xl">
+    <div class="bg-surface-container border border-outline-variant/20 rounded-lg p-6">
+        <p class="text-sm text-on-surface-variant mb-2">AMM could not render this page.</p>
+        <h2 class="text-lg font-semibold text-primary mb-3">Something went wrong while loading the view.</h2>
+        <p class="text-sm text-on-surface-variant">Try refreshing the page or return to the dashboard.</p>
+        <a href="/" class="inline-flex items-center mt-5 px-4 py-2 rounded-lg bg-primary text-on-primary text-sm font-medium hover:opacity-90 transition-opacity">Dashboard</a>
+    </div>
+</section>
+{% endblock %}

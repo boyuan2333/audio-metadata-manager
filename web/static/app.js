@@ -53,6 +53,10 @@
             _isPlaying = true;
             _updatePlayIcon();
         }).catch(function (err) {
+            if (filenameEl) filenameEl.textContent = '文件不可预览';
+            if (timeEl) timeEl.textContent = '00:00 / 00:00';
+            _isPlaying = false;
+            _updatePlayIcon();
             console.warn('Audio play failed:', err);
         });
     }
@@ -98,6 +102,13 @@
         _updatePlayIcon();
     });
 
+    _audio.addEventListener('error', function () {
+        if (filenameEl) filenameEl.textContent = '文件不可预览';
+        if (timeEl) timeEl.textContent = '00:00 / 00:00';
+        _isPlaying = false;
+        _updatePlayIcon();
+    });
+
     // Volume
     if (volumeEl) {
         _audio.volume = parseFloat(volumeEl.value) || 0.8;
@@ -115,9 +126,22 @@
        ================================================================ */
     function _fetchJSON(url) {
         return fetch(url).then(function (resp) {
-            if (!resp.ok) throw new Error('HTTP ' + resp.status);
-            return resp.json();
+            return resp.json().catch(function () { return {}; }).then(function (data) {
+                if (!resp.ok) {
+                    var detail = data.detail || data.message || data.error || ('HTTP ' + resp.status);
+                    if (Array.isArray(detail)) detail = detail.map(function (item) { return item.msg || item.message || String(item); }).join('; ');
+                    if (typeof detail === 'object') detail = JSON.stringify(detail);
+                    throw new Error(detail);
+                }
+                return data;
+            });
         });
+    }
+
+    function addNonEmpty(params, key, value) {
+        if (value == null) return;
+        value = String(value).trim();
+        if (value) params.set(key, value);
     }
 
     function _escapeHTML(str) {
@@ -276,19 +300,19 @@
         // Build query string
         var searchVal = (document.getElementById('lib-search') || {}).value || libState.query;
         var params = new URLSearchParams();
-        if (searchVal) params.set('q', searchVal);
+        addNonEmpty(params, 'q', searchVal);
 
         var fmt = (document.getElementById('filter-format') || {}).value;
-        if (fmt) params.set('format', fmt);
+        addNonEmpty(params, 'format', fmt);
 
         var brightness = (document.getElementById('filter-brightness') || {}).value;
-        if (brightness) params.set('brightness', brightness);
+        addNonEmpty(params, 'brightness', brightness);
 
         var tempoMin = (document.getElementById('filter-tempo-min') || {}).value;
-        if (tempoMin) params.set('tempo_min', tempoMin);
+        addNonEmpty(params, 'min_bpm', tempoMin);
 
         var tempoMax = (document.getElementById('filter-tempo-max') || {}).value;
-        if (tempoMax) params.set('tempo_max', tempoMax);
+        addNonEmpty(params, 'max_bpm', tempoMax);
 
         params.set('limit', libState.perPage);
         params.set('offset', (libState.page - 1) * libState.perPage);
@@ -317,9 +341,10 @@
             }
 
             tbody.innerHTML = files.map(function (f) {
-                var filePath = f.file_path || f.path || f.id || '';
-                var fileName = f.filename || f.name || '--';
-                var tags = (f.tags || []).slice(0, 3).map(function (t) {
+                var meta = f.metadata || {};
+                var filePath = f.file_path || f.path || meta.path || f.id || '';
+                var fileName = f.filename || f.file_name || f.name || '--';
+                var tags = (f.tags || meta.tags || []).slice(0, 3).map(function (t) {
                     return '<span class="inline-block px-2 py-0.5 bg-secondary-container text-on-secondary-container rounded text-xs mr-1">' + _escapeHTML(t) + '</span>';
                 }).join('');
 
@@ -331,14 +356,14 @@
                         '</button>' +
                     '</td>' +
                     '<td class="px-5 py-3 text-on-surface truncate max-w-xs">' + _escapeHTML(fileName) + '</td>' +
-                    '<td class="px-5 py-3"><span class="px-2 py-0.5 bg-surface-container-high rounded text-xs font-medium text-on-surface-variant">' + _escapeHTML(f.format || '--') + '</span></td>' +
-                    '<td class="px-5 py-3 text-on-surface-variant font-mono">' + _escapeHTML(f.duration || '--') + '</td>' +
-                    '<td class="px-5 py-3 text-on-surface-variant">' + (f.tempo ? _escapeHTML(f.tempo) + ' BPM' : '--') + '</td>' +
+                    '<td class="px-5 py-3"><span class="px-2 py-0.5 bg-surface-container-high rounded text-xs font-medium text-on-surface-variant">' + _escapeHTML(f.format || meta.format || '--') + '</span></td>' +
+                    '<td class="px-5 py-3 text-on-surface-variant font-mono">' + _escapeHTML(f.duration || meta.duration || '--') + '</td>' +
+                    '<td class="px-5 py-3 text-on-surface-variant">' + (f.tempo || meta.bpm ? _escapeHTML(f.tempo || meta.bpm) + ' BPM' : '--') + '</td>' +
                     '<td class="px-5 py-3 text-on-surface-variant">' + tags + '</td>' +
                     '</tr>';
             }).join('');
         }).catch(function (err) {
-            tbody.innerHTML = '<tr><td colspan="6" class="px-5 py-10 text-center text-error">Error loading results.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="px-5 py-10 text-center text-error">' + _escapeHTML(err.message || 'Error loading results.') + '</td></tr>';
             console.warn('Library search error:', err);
         });
     }
