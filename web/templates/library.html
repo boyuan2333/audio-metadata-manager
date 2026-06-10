@@ -5,108 +5,79 @@
 
 {% block content %}
 <!-- Search & Filters -->
-<div class="bg-surface-container rounded-xl border border-outline-variant/20 p-5 mb-6">
-    <form id="search-form" class="flex flex-col gap-4">
-        <!-- Search Bar -->
+<div class="bg-bg-surface rounded-xl border border-border-default p-lg mb-lg">
+    <form id="search-form" class="flex flex-col gap-md">
+        <!-- Search Bar with AI Glow -->
         <div class="relative flex-1">
-            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">search</span>
-            <input type="text" id="lib-search" name="q" placeholder="Search by filename, tag, or keyword..."
+            <span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-text-tertiary text-lg">search</span>
+            <input type="text" id="lib-search" name="q" placeholder="Search by filename, tag, or natural language..."
                 value="{{ request.query_params.get('q', '') }}"
-                class="w-full pl-10 pr-4 py-2.5 bg-surface-container-high border border-outline-variant/30 rounded-lg text-sm text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-colors"/>
+                class="search-input w-full pl-12 pr-md py-md text-sm text-text-primary placeholder-text-tertiary rounded-lg focus:outline-none transition-all"/>
+            <span class="absolute right-md top-1/2 -translate-y-1/2 text-xs text-text-tertiary">AI-powered</span>
         </div>
 
-        <!-- Filter Row -->
-        <div class="flex flex-wrap items-end gap-4">
-            <!-- Format Filter -->
-            <div class="flex flex-col gap-1">
-                <label class="text-xs font-medium text-on-surface-variant uppercase tracking-wider">Format</label>
-                <select id="filter-format" name="format"
-                    class="bg-surface-container-high border border-outline-variant/30 rounded-lg text-sm text-on-surface px-3 py-2 pr-8 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-colors">
-                    <option value="">All Formats</option>
-                    <option value="wav">WAV</option>
-                    <option value="mp3">MP3</option>
-                    <option value="flac">FLAC</option>
-                    <option value="ogg">OGG</option>
-                    <option value="aac">AAC</option>
-                    <option value="m4a">M4A</option>
-                </select>
-            </div>
+        <!-- Filter Chips Row -->
+        <div class="flex flex-wrap items-center gap-sm">
+            <span class="text-xs font-semibold text-text-secondary uppercase tracking-widest mr-sm">Filters:</span>
 
-            <!-- Brightness Filter -->
-            <div class="flex flex-col gap-1">
-                <label class="text-xs font-medium text-on-surface-variant uppercase tracking-wider">Brightness</label>
-                <select id="filter-brightness" name="brightness"
-                    class="bg-surface-container-high border border-outline-variant/30 rounded-lg text-sm text-on-surface px-3 py-2 pr-8 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-colors">
-                    <option value="">Any</option>
-                    <option value="dark">Dark</option>
-                    <option value="neutral">Neutral</option>
-                    <option value="bright">Bright</option>
-                </select>
-            </div>
+            <!-- Format Chips -->
+            <span class="filter-chip active" data-filter="format" data-value="all">All Formats</span>
+            <span class="filter-chip" data-filter="format" data-value="wav">WAV</span>
+            <span class="filter-chip" data-filter="format" data-value="mp3">MP3</span>
+            <span class="filter-chip" data-filter="format" data-value="flac">FLAC</span>
+
+            <!-- Separator -->
+            <span class="w-px h-4 bg-border-default mx-xs"></span>
+
+            <!-- Brightness Chips -->
+            <span class="filter-chip active" data-filter="brightness" data-value="all">Any</span>
+            <span class="filter-chip" data-filter="brightness" data-value="dark">Dark</span>
+            <span class="filter-chip" data-filter="brightness" data-value="neutral">Neutral</span>
+            <span class="filter-chip" data-filter="brightness" data-value="bright">Bright</span>
+
+            <!-- Separator -->
+            <span class="w-px h-4 bg-border-default mx-xs"></span>
 
             <!-- Tempo Range -->
-            <div class="flex flex-col gap-1">
-                <label class="text-xs font-medium text-on-surface-variant uppercase tracking-wider">Tempo Min</label>
+            <div class="flex items-center gap-xs">
+                <label class="amm-label mb-0">Tempo</label>
                 <input type="number" id="filter-tempo-min" name="tempo_min" placeholder="60" min="0" max="999"
-                    class="w-24 bg-surface-container-high border border-outline-variant/30 rounded-lg text-sm text-on-surface px-3 py-2 placeholder-on-surface-variant/50 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-colors"/>
-            </div>
-            <div class="flex flex-col gap-1">
-                <label class="text-xs font-medium text-on-surface-variant uppercase tracking-wider">Tempo Max</label>
+                    class="w-20 amm-input text-sm py-1"/>
+                <span class="text-text-tertiary">–</span>
                 <input type="number" id="filter-tempo-max" name="tempo_max" placeholder="180" min="0" max="999"
-                    class="w-24 bg-surface-container-high border border-outline-variant/30 rounded-lg text-sm text-on-surface px-3 py-2 placeholder-on-surface-variant/50 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-colors"/>
+                    class="w-20 amm-input text-sm py-1"/>
             </div>
-
-            <!-- Search Button -->
-            <button type="submit" class="bg-primary text-on-primary px-5 py-2 rounded-lg text-xs font-medium hover:opacity-90 transition-opacity flex items-center gap-2">
-                <span class="material-symbols-outlined text-sm">search</span>
-                Search
-            </button>
-            <button type="button" id="btn-clear" class="px-4 py-2 rounded-lg text-xs font-medium text-on-surface-variant border border-outline-variant/30 hover:bg-surface-container-high transition-colors">
-                Clear
-            </button>
         </div>
     </form>
 </div>
 
-<!-- Results Table -->
-<section class="bg-surface-container rounded-xl border border-outline-variant/20 overflow-hidden">
-    <div class="flex justify-between items-center p-5 border-b border-outline-variant/20">
-        <h3 class="text-base font-semibold text-on-surface">Results</h3>
-        <span id="result-count" class="text-xs text-on-surface-variant">-- items</span>
+<!-- Results -->
+<section class="bg-bg-surface rounded-xl border border-border-default overflow-hidden">
+    <div class="flex justify-between items-center p-lg border-b border-border-subtle">
+        <h3 class="text-base font-semibold text-text-primary">Results</h3>
+        <span id="result-count" class="text-xs text-text-secondary font-mono">-- items</span>
     </div>
-    <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-            <thead>
-                <tr class="border-b border-outline-variant/20">
-                    <th class="text-left px-5 py-3 text-xs font-medium text-on-surface-variant uppercase tracking-wider w-10"></th>
-                    <th class="text-left px-5 py-3 text-xs font-medium text-on-surface-variant uppercase tracking-wider">Filename</th>
-                    <th class="text-left px-5 py-3 text-xs font-medium text-on-surface-variant uppercase tracking-wider">Format</th>
-                    <th class="text-left px-5 py-3 text-xs font-medium text-on-surface-variant uppercase tracking-wider">Duration</th>
-                    <th class="text-left px-5 py-3 text-xs font-medium text-on-surface-variant uppercase tracking-wider">Tempo</th>
-                    <th class="text-left px-5 py-3 text-xs font-medium text-on-surface-variant uppercase tracking-wider">Tags</th>
-                </tr>
-            </thead>
-            <tbody id="results-body">
-                <tr>
-                    <td colspan="6" class="px-5 py-10 text-center text-on-surface-variant">
-                        <span class="material-symbols-outlined text-3xl block mb-2 opacity-50">music_note</span>
-                        Use the search above to find tracks.
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+
+    <!-- Results List (Card Style) -->
+    <div id="results-body" class="divide-y divide-border-subtle">
+        <!-- Empty State -->
+        <div class="px-lg py-xl text-center text-text-tertiary">
+            <span class="material-symbols-outlined text-4xl block mb-md opacity-50">music_note</span>
+            <p class="text-sm">Use the search above to find tracks.</p>
+            <p class="text-xs mt-xs text-text-tertiary">Try: "dark ambient loops" or "120 bpm drums"</p>
+        </div>
     </div>
 
     <!-- Pagination -->
-    <div class="flex items-center justify-between p-5 border-t border-outline-variant/20">
-        <button id="btn-prev" disabled class="px-4 py-2 rounded-lg text-xs font-medium text-on-surface-variant border border-outline-variant/30 hover:bg-surface-container-high transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1">
+    <div class="flex items-center justify-between p-lg border-t border-border-subtle">
+        <button id="btn-prev" disabled class="btn-ghost text-xs flex items-center gap-xs disabled:opacity-40 disabled:cursor-not-allowed">
             <span class="material-symbols-outlined text-sm">chevron_left</span>
             Previous
         </button>
-        <div class="flex items-center gap-2">
-            <span id="page-info" class="text-xs text-on-surface-variant">Page 1 of 1</span>
+        <div class="flex items-center gap-sm">
+            <span id="page-info" class="text-xs text-text-secondary font-mono">Page 1 of 1</span>
         </div>
-        <button id="btn-next" disabled class="px-4 py-2 rounded-lg text-xs font-medium text-on-surface-variant border border-outline-variant/30 hover:bg-surface-container-high transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1">
+        <button id="btn-next" disabled class="btn-ghost text-xs flex items-center gap-xs disabled:opacity-40 disabled:cursor-not-allowed">
             Next
             <span class="material-symbols-outlined text-sm">chevron_right</span>
         </button>
@@ -116,8 +87,128 @@
 
 {% block scripts %}
 <script>
-    if (window.libraryInit) {
-        window.libraryInit();
+    // Tag dimension mapping
+    function getTagDimension(tag) {
+        const techTags = ['bpm', 'lufs', 'sample rate', 'bit depth', 'tempo', 'key', '44.1khz', '48khz', '96khz'];
+        const emotionTags = ['dark', 'bright', 'calm', 'energetic', 'warm', 'cold', 'aggressive', 'peaceful', 'melancholic', 'uplifting'];
+        const categoryTags = ['loop', 'one-shot', 'oneshot', 'percussive', 'sustained', 'bass', 'lead', 'pad', 'fx', 'vocal', 'drums', 'strings'];
+        const formatTags = ['wav', 'mp3', 'flac', 'aiff', 'ogg', 'aac', 'm4a', '24-bit', '16-bit', '32-bit'];
+
+        const lower = tag.toLowerCase();
+        if (techTags.some(t => lower.includes(t))) return 'tech';
+        if (emotionTags.some(t => lower.includes(t))) return 'emotion';
+        if (formatTags.some(t => lower.includes(t))) return 'format';
+        if (categoryTags.some(t => lower.includes(t))) return 'category';
+        return 'category';
+    }
+
+    function renderTagPill(tag) {
+        const dim = getTagDimension(tag);
+        return `<span class="tag-pill tag-pill--${dim}">${tag}</span>`;
+    }
+
+    // Filter chip interaction
+    document.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            const filterGroup = chip.dataset.filter;
+            const isActive = chip.classList.contains('active');
+
+            // Deactivate all in same group
+            document.querySelectorAll(`.filter-chip[data-filter="${filterGroup}"]`).forEach(c => {
+                c.classList.remove('active');
+            });
+
+            // Activate clicked (or keep "all" if clicking same)
+            if (!isActive || chip.dataset.value === 'all') {
+                chip.classList.add('active');
+            } else {
+                // Reactivate "all" if nothing selected
+                document.querySelector(`.filter-chip[data-filter="${filterGroup}"][data-value="all"]`).classList.add('active');
+            }
+        });
+    });
+
+    // Search form handler
+    document.getElementById('search-form')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const query = document.getElementById('lib-search').value.trim();
+        if (!query) return;
+
+        const resultsBody = document.getElementById('results-body');
+        resultsBody.innerHTML = `
+            <div class="px-lg py-xl text-center">
+                <div class="spinner mx-auto mb-md"></div>
+                <p class="text-sm text-text-secondary">Searching...</p>
+            </div>`;
+
+        try {
+            const resp = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+            if (resp.ok) {
+                const data = await resp.json();
+                const files = data.files || data || [];
+                document.getElementById('result-count').textContent = `${files.length} items`;
+
+                if (files.length === 0) {
+                    resultsBody.innerHTML = `
+                        <div class="px-lg py-xl text-center text-text-tertiary">
+                            <span class="material-symbols-outlined text-4xl block mb-md opacity-50">search_off</span>
+                            <p class="text-sm">No results found.</p>
+                            <p class="text-xs mt-xs">Try different keywords or filters.</p>
+                        </div>`;
+                    return;
+                }
+
+                resultsBody.innerHTML = files.map(f => {
+                    const tags = f.tags || [];
+                    const tagHtml = tags.slice(0, 4).map(renderTagPill).join('');
+                    const moreTags = tags.length > 4 ? `<span class="text-xs text-text-tertiary">+${tags.length - 4}</span>` : '';
+
+                    return `
+                        <div class="result-card flex items-center gap-md px-lg py-md hover:bg-bg-elevated transition-colors cursor-pointer">
+                            <!-- Play Button -->
+                            <button class="play-button w-9 h-9 flex-shrink-0 flex items-center justify-center" data-file="${f.filename || f.name || ''}">
+                                <span class="material-symbols-outlined text-sm">play_arrow</span>
+                            </button>
+
+                            <!-- Waveform Thumbnail -->
+                            <div class="w-24 h-12 bg-bg-base rounded overflow-hidden flex-shrink-0">
+                                <div class="w-full h-full bg-gradient-to-r from-waveform-low via-waveform-mid to-waveform-high opacity-30"></div>
+                            </div>
+
+                            <!-- Track Info -->
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-text-primary truncate">${f.filename || f.name || '--'}</p>
+                                <div class="flex items-center gap-md mt-xs">
+                                    <span class="text-xs font-mono text-text-secondary">${f.duration || '--'}</span>
+                                    <span class="text-xs font-mono text-text-secondary">${f.tempo ? f.tempo + ' BPM' : '--'}</span>
+                                    <span class="text-xs text-text-tertiary">${f.size || '--'}</span>
+                                </div>
+                            </div>
+
+                            <!-- Tags -->
+                            <div class="flex flex-wrap gap-xs flex-shrink-0">
+                                ${tagHtml}${moreTags}
+                            </div>
+
+                            <!-- Format Badge -->
+                            <span class="tag-pill tag-pill--format flex-shrink-0">${f.format || '--'}</span>
+                        </div>`;
+                }).join('');
+            }
+        } catch (e) {
+            console.error('Search error:', e);
+            resultsBody.innerHTML = `
+                <div class="px-lg py-xl text-center text-error">
+                    <span class="material-symbols-outlined text-4xl block mb-md">error</span>
+                    <p class="text-sm">Search failed. Please try again.</p>
+                </div>`;
+        }
+    });
+
+    // Auto-search if query param exists
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('q')) {
+        document.getElementById('search-form')?.dispatchEvent(new Event('submit'));
     }
 </script>
 {% endblock %}

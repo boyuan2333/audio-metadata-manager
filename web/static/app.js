@@ -2,7 +2,7 @@
  * app.js — Audio Metadata Manager (AMM) Web UI
  * Loaded globally via base.html. Provides:
  *   - Global search (top bar)
- *   - Global audio player
+ *   - Global audio player with waveform visualization
  *   - dashboardInit(), libraryInit(), editorInit(), settingsInit()
  *
  * Vanilla JS only — no frameworks.
@@ -24,20 +24,163 @@
                 }
             }
         });
+
+        // Keyboard shortcut: Cmd+K / Ctrl+K to focus search
+        document.addEventListener('keydown', function (e) {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                globalSearch.focus();
+            }
+        });
     }
 
     /* ================================================================
-       2. GLOBAL AUDIO PLAYER
+       2. WAVEFORM VISUALIZATION
+       ================================================================ */
+    const WaveformRenderer = {
+        canvas: null,
+        ctx: null,
+        audioContext: null,
+        analyser: null,
+        dataArray: null,
+        animationId: null,
+
+        init: function (canvasId) {
+            this.canvas = document.getElementById(canvasId);
+            if (!this.canvas) return;
+            this.ctx = this.canvas.getContext('2d');
+            this.resize();
+            window.addEventListener('resize', () => this.resize());
+        },
+
+        resize: function () {
+            if (!this.canvas) return;
+            const rect = this.canvas.parentElement.getBoundingClientRect();
+            this.canvas.width = rect.width * window.devicePixelRatio;
+            this.canvas.height = rect.height * window.devicePixelRatio;
+            this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+            this.canvas.style.width = rect.width + 'px';
+            this.canvas.style.height = rect.height + 'px';
+        },
+
+        connectAudio: function (audioElement) {
+            if (!this.audioContext) {
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (!this.analyser) {
+                this.analyser = this.audioContext.createAnalyser();
+                this.analyser.fftSize = 256;
+                const bufferLength = this.analyser.frequencyBinCount;
+                this.dataArray = new Uint8Array(bufferLength);
+            }
+            const source = this.audioContext.createMediaElementSource(audioElement);
+            source.connect(this.analyser);
+            this.analyser.connect(this.audioContext.destination);
+        },
+
+        draw: function () {
+            if (!this.ctx || !this.analyser) {
+                this.drawPlaceholder();
+                return;
+            }
+
+            this.animationId = requestAnimationFrame(() => this.draw());
+
+            this.analyser.getByteFrequencyData(this.dataArray);
+
+            const width = this.canvas.width / window.devicePixelRatio;
+            const height = this.canvas.height / window.devicePixelRatio;
+            const barWidth = (width / this.dataArray.length) * 2.5;
+            let x = 0;
+
+            this.ctx.clearRect(0, 0, width, height);
+
+            for (let i = 0; i < this.dataArray.length; i++) {
+                const barHeight = (this.dataArray[i] / 255) * height;
+
+                // Gradient color based on frequency
+                const hue = (i / this.dataArray.length) * 120; // Orange to Cyan
+                const gradient = this.ctx.createLinearGradient(x, height, x, height - barHeight);
+                gradient.addColorStop(0, `hsla(${hue + 20}, 100%, 60%, 0.8)`);
+                gradient.addColorStop(1, `hsla(${hue + 20}, 100%, 70%, 0.4)`);
+
+                this.ctx.fillStyle = gradient;
+                this.ctx.fillRect(x, height - barHeight, barWidth - 1, barHeight);
+
+                x += barWidth;
+            }
+        },
+
+        drawPlaceholder: function () {
+            if (!this.ctx) return;
+            const width = this.canvas.width / window.devicePixelRatio;
+            const height = this.canvas.height / window.devicePixelRatio;
+
+            this.ctx.clearRect(0, 0, width, height);
+
+            // Draw static waveform bars
+            const barCount = 64;
+            const barWidth = (width / barCount) * 0.8;
+            const gap = (width / barCount) * 0.2;
+
+            for (let i = 0; i < barCount; i++) {
+                const barHeight = Math.random() * height * 0.6 + height * 0.1;
+                const x = i * (barWidth + gap);
+
+                // Gradient from orange (low) to cyan (mid) to blue (high)
+                const ratio = i / barCount;
+                let color;
+                if (ratio < 0.33) {
+                    color = '#FF6B35'; // Low freq - orange
+                } else if (ratio < 0.66) {
+                    color = '#00D4AA'; // Mid freq - cyan
+                } else {
+                    color = '#4A9EFF'; // High freq - blue
+                }
+
+                this.ctx.fillStyle = color;
+                this.ctx.globalAlpha = 0.3;
+                this.ctx.fillRect(x, height - barHeight, barWidth, barHeight);
+            }
+            this.ctx.globalAlpha = 1;
+        },
+
+        stop: function () {
+            if (this.animationId) {
+                cancelAnimationFrame(this.animationId);
+                this.animationId = null;
+            }
+        },
+
+        clear: function () {
+            this.stop();
+            if (this.ctx) {
+                const width = this.canvas.width / window.devicePixelRatio;
+                const height = this.canvas.height / window.devicePixelRatio;
+                this.ctx.clearRect(0, 0, width, height);
+            }
+        }
+    };
+
+    /* ================================================================
+       3. GLOBAL AUDIO PLAYER
        ================================================================ */
     const _audio = new Audio();
     _audio.preload = 'metadata';
     let _isPlaying = false;
+    let _audioConnected = false;
 
-    const playerEl    = document.getElementById('audio-player');
-    const playBtn     = document.getElementById('player-play');
-    const filenameEl  = document.getElementById('player-filename');
-    const timeEl      = document.getElementById('player-time');
-    const volumeEl    = document.getElementById('player-volume');
+    const playerEl = document.getElementById('audio-player');
+    const playBtn = document.getElementById('player-play');
+    const filenameEl = document.getElementById('player-filename');
+    const timeEl = document.getElementById('player-time');
+    const volumeEl = document.getElementById('player-volume');
+    const expandBtn = document.getElementById('player-expand');
+    const waveformProgress = document.getElementById('waveform-progress');
+
+    // Initialize waveform
+    WaveformRenderer.init('waveform-canvas');
+    WaveformRenderer.drawPlaceholder();
 
     /**
      * playAudio(filePath, fileName)
@@ -48,10 +191,26 @@
         playerEl.classList.remove('hidden');
         if (filenameEl) filenameEl.textContent = fileName || filePath;
 
+        // Connect audio to waveform on first play
+        if (!_audioConnected) {
+            try {
+                WaveformRenderer.connectAudio(_audio);
+                _audioConnected = true;
+            } catch (e) {
+                console.warn('Waveform connection failed:', e);
+            }
+        }
+
         _audio.src = '/api/audio/' + encodeURIComponent(filePath);
         _audio.play().then(function () {
             _isPlaying = true;
             _updatePlayIcon();
+            WaveformRenderer.draw();
+
+            // Highlight playing card
+            document.querySelectorAll('.result-card').forEach(card => card.classList.remove('playing'));
+            const playingCard = document.querySelector(`[data-file="${filePath}"]`)?.closest('.result-card');
+            if (playingCard) playingCard.classList.add('playing');
         }).catch(function (err) {
             if (filenameEl) filenameEl.textContent = '文件不可预览';
             if (timeEl) timeEl.textContent = '00:00 / 00:00';
@@ -65,6 +224,13 @@
         if (!playBtn) return;
         var icon = playBtn.querySelector('.material-symbols-outlined');
         if (icon) icon.textContent = _isPlaying ? 'pause' : 'play_arrow';
+
+        // Update play button state
+        if (_isPlaying) {
+            playBtn.classList.add('active');
+        } else {
+            playBtn.classList.remove('active');
+        }
     }
 
     if (playBtn) {
@@ -73,9 +239,11 @@
             if (_isPlaying) {
                 _audio.pause();
                 _isPlaying = false;
+                WaveformRenderer.stop();
             } else {
                 _audio.play().catch(function () {});
                 _isPlaying = true;
+                WaveformRenderer.draw();
             }
             _updatePlayIcon();
         });
@@ -91,6 +259,12 @@
 
     _audio.addEventListener('timeupdate', function () {
         if (timeEl) timeEl.textContent = _formatTime(_audio.currentTime) + ' / ' + _formatTime(_audio.duration);
+
+        // Update waveform progress
+        if (waveformProgress && _audio.duration) {
+            const progress = (_audio.currentTime / _audio.duration) * 100;
+            waveformProgress.style.width = progress + '%';
+        }
     });
 
     _audio.addEventListener('loadedmetadata', function () {
@@ -100,6 +274,7 @@
     _audio.addEventListener('ended', function () {
         _isPlaying = false;
         _updatePlayIcon();
+        WaveformRenderer.stop();
     });
 
     _audio.addEventListener('error', function () {
@@ -107,6 +282,7 @@
         if (timeEl) timeEl.textContent = '00:00 / 00:00';
         _isPlaying = false;
         _updatePlayIcon();
+        WaveformRenderer.stop();
     });
 
     // Volume
@@ -114,6 +290,32 @@
         _audio.volume = parseFloat(volumeEl.value) || 0.8;
         volumeEl.addEventListener('input', function () {
             _audio.volume = parseFloat(this.value) || 0;
+        });
+    }
+
+    // Expand/Collapse mini player
+    if (expandBtn && playerEl) {
+        let isExpanded = false;
+        expandBtn.addEventListener('click', function () {
+            isExpanded = !isExpanded;
+            playerEl.classList.toggle('expanded', isExpanded);
+            const icon = expandBtn.querySelector('.material-symbols-outlined');
+            if (icon) icon.textContent = isExpanded ? 'expand_more' : 'expand_less';
+
+            // Resize waveform after animation
+            setTimeout(() => WaveformRenderer.resize(), 300);
+        });
+    }
+
+    // Waveform click to seek
+    const waveformContainer = document.getElementById('waveform-container');
+    if (waveformContainer) {
+        waveformContainer.addEventListener('click', function (e) {
+            if (!_audio.duration) return;
+            const rect = this.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const progress = x / rect.width;
+            _audio.currentTime = progress * _audio.duration;
         });
     }
 
@@ -167,8 +369,28 @@
         return m + 'm ' + s + 's';
     }
 
+    // Tag dimension helper
+    function _getTagDimension(tag) {
+        const techTags = ['bpm', 'lufs', 'sample rate', 'bit depth', 'tempo', 'key', '44.1khz', '48khz', '96khz'];
+        const emotionTags = ['dark', 'bright', 'calm', 'energetic', 'warm', 'cold', 'aggressive', 'peaceful', 'melancholic', 'uplifting'];
+        const categoryTags = ['loop', 'one-shot', 'oneshot', 'percussive', 'sustained', 'bass', 'lead', 'pad', 'fx', 'vocal', 'drums', 'strings'];
+        const formatTags = ['wav', 'mp3', 'flac', 'aiff', 'ogg', 'aac', 'm4a', '24-bit', '16-bit', '32-bit'];
+
+        const lower = tag.toLowerCase();
+        if (techTags.some(t => lower.includes(t))) return 'tech';
+        if (emotionTags.some(t => lower.includes(t))) return 'emotion';
+        if (formatTags.some(t => lower.includes(t))) return 'format';
+        if (categoryTags.some(t => lower.includes(t))) return 'category';
+        return 'category';
+    }
+
+    function _renderTagPill(tag) {
+        const dim = _getTagDimension(tag);
+        return '<span class="tag-pill tag-pill--' + dim + '">' + _escapeHTML(tag) + '</span>';
+    }
+
     /* ================================================================
-       3. DASHBOARD — dashboardInit()
+       4. DASHBOARD — dashboardInit()
        ================================================================ */
     function dashboardInit() {
         _loadReport();
@@ -209,16 +431,30 @@
             if (!tbody) return;
 
             if (files.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="px-5 py-10 text-center text-on-surface-variant">No files found. Run a scan to populate your library.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="px-lg py-xl text-center text-text-tertiary">No files found. Run a scan to populate your library.</td></tr>';
                 return;
             }
             tbody.innerHTML = files.map(function (f) {
-                return '<tr class="border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors">' +
-                    '<td class="px-5 py-3 text-on-surface truncate max-w-xs">' + _escapeHTML(f.filename || f.name || '--') + '</td>' +
-                    '<td class="px-5 py-3 text-on-surface-variant">' + _escapeHTML(f.format || '--') + '</td>' +
-                    '<td class="px-5 py-3 text-on-surface-variant font-mono">' + _escapeHTML(f.duration || '--') + '</td>' +
-                    '<td class="px-5 py-3 text-on-surface-variant">' + (f.tempo ? _escapeHTML(f.tempo) + ' BPM' : '--') + '</td>' +
-                    '<td class="px-5 py-3 text-on-surface-variant">' + _formatBytes(f.size) + '</td>' +
+                var tags = (f.tags || []).slice(0, 3).map(_renderTagPill).join('');
+                var moreTags = (f.tags || []).length > 3 ? '<span class="text-xs text-text-tertiary">+' + ((f.tags || []).length - 3) + '</span>' : '';
+                var filePath = f.file_path || f.path || f.id || '';
+                var fileName = f.filename || f.name || '--';
+
+                return '<tr class="hover:bg-bg-elevated transition-colors">' +
+                    '<td class="px-md py-sm">' +
+                        '<div class="flex items-center gap-sm">' +
+                            '<button onclick="playAudio(\'' + _escapeHTML(filePath).replace(/'/g, "\\'") + '\', \'' + _escapeHTML(fileName).replace(/'/g, "\\'") + '\')" ' +
+                            'class="play-button w-8 h-8 flex items-center justify-center">' +
+                                '<span class="material-symbols-outlined text-sm">play_arrow</span>' +
+                            '</button>' +
+                            '<span class="text-text-primary truncate max-w-xs">' + _escapeHTML(fileName) + '</span>' +
+                        '</div>' +
+                    '</td>' +
+                    '<td class="px-md py-sm"><span class="tag-pill tag-pill--format">' + _escapeHTML(f.format || '--') + '</span></td>' +
+                    '<td class="px-md py-sm font-mono text-text-secondary">' + _escapeHTML(f.duration || '--') + '</td>' +
+                    '<td class="px-md py-sm font-mono text-text-secondary">' + (f.tempo ? _escapeHTML(f.tempo) + ' BPM' : '--') + '</td>' +
+                    '<td class="px-md py-sm text-text-secondary">' + _formatBytes(f.size) + '</td>' +
+                    '<td class="px-md py-sm"><div class="flex flex-wrap gap-xs">' + tags + moreTags + '</div></td>' +
                     '</tr>';
             }).join('');
         }).catch(function (err) {
@@ -238,7 +474,7 @@
     }
 
     /* ================================================================
-       4. LIBRARY — libraryInit()
+       5. LIBRARY — libraryInit()
        ================================================================ */
     var libState = { page: 1, perPage: 25, total: 0, query: '' };
 
@@ -263,19 +499,29 @@
             });
         }
 
-        // Clear button
-        var clearBtn = document.getElementById('btn-clear');
-        if (clearBtn) {
-            clearBtn.addEventListener('click', function () {
-                ['lib-search', 'filter-format', 'filter-brightness', 'filter-tempo-min', 'filter-tempo-max'].forEach(function (id) {
-                    var el = document.getElementById(id);
-                    if (el) el.value = '';
+        // Filter chips
+        document.querySelectorAll('.filter-chip').forEach(chip => {
+            chip.addEventListener('click', function () {
+                const filterGroup = this.dataset.filter;
+                const isActive = this.classList.contains('active');
+
+                // Deactivate all in same group
+                document.querySelectorAll('.filter-chip[data-filter="' + filterGroup + '"]').forEach(c => {
+                    c.classList.remove('active');
                 });
+
+                // Activate clicked (or keep "all" if clicking same)
+                if (!isActive || this.dataset.value === 'all') {
+                    this.classList.add('active');
+                } else {
+                    document.querySelector('.filter-chip[data-filter="' + filterGroup + '"][data-value="all"]').classList.add('active');
+                }
+
+                // Trigger search
                 libState.page = 1;
-                libState.query = '';
                 _librarySearch();
             });
-        }
+        });
 
         // Pagination
         var prevBtn = document.getElementById('btn-prev');
@@ -294,19 +540,24 @@
     }
 
     function _librarySearch() {
-        var tbody = document.getElementById('results-body');
-        if (!tbody) return;
+        var resultsBody = document.getElementById('results-body');
+        if (!resultsBody) return;
 
         // Build query string
         var searchVal = (document.getElementById('lib-search') || {}).value || libState.query;
         var params = new URLSearchParams();
         addNonEmpty(params, 'q', searchVal);
 
-        var fmt = (document.getElementById('filter-format') || {}).value;
-        addNonEmpty(params, 'format', fmt);
+        // Get active filter values
+        var formatChip = document.querySelector('.filter-chip[data-filter="format"].active');
+        if (formatChip && formatChip.dataset.value !== 'all') {
+            params.set('format', formatChip.dataset.value);
+        }
 
-        var brightness = (document.getElementById('filter-brightness') || {}).value;
-        addNonEmpty(params, 'brightness', brightness);
+        var brightnessChip = document.querySelector('.filter-chip[data-filter="brightness"].active');
+        if (brightnessChip && brightnessChip.dataset.value !== 'all') {
+            params.set('brightness', brightnessChip.dataset.value);
+        }
 
         var tempoMin = (document.getElementById('filter-tempo-min') || {}).value;
         addNonEmpty(params, 'min_bpm', tempoMin);
@@ -317,7 +568,7 @@
         params.set('limit', libState.perPage);
         params.set('offset', (libState.page - 1) * libState.perPage);
 
-        tbody.innerHTML = '<tr><td colspan="6" class="px-5 py-10 text-center text-on-surface-variant"><span class="material-symbols-outlined animate-spin text-2xl">sync</span></td></tr>';
+        resultsBody.innerHTML = '<div class="px-lg py-xl text-center"><div class="spinner mx-auto mb-md"></div><p class="text-sm text-text-secondary">Searching...</p></div>';
 
         _fetchJSON('/api/search?' + params.toString()).then(function (data) {
             var files = data.results || [];
@@ -336,40 +587,50 @@
             if (nextBtn) nextBtn.disabled = libState.page >= totalPages;
 
             if (files.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="px-5 py-10 text-center text-on-surface-variant">No results found.</td></tr>';
+                resultsBody.innerHTML = '<div class="px-lg py-xl text-center text-text-tertiary">' +
+                    '<span class="material-symbols-outlined text-4xl block mb-md opacity-50">search_off</span>' +
+                    '<p class="text-sm">No results found.</p>' +
+                    '<p class="text-xs mt-xs">Try different keywords or filters.</p></div>';
                 return;
             }
 
-            tbody.innerHTML = files.map(function (f) {
+            resultsBody.innerHTML = files.map(function (f) {
                 var meta = f.metadata || {};
                 var filePath = f.file_path || f.path || meta.path || f.id || '';
                 var fileName = f.filename || f.file_name || f.name || '--';
-                var tags = (f.tags || meta.tags || []).slice(0, 3).map(function (t) {
-                    return '<span class="inline-block px-2 py-0.5 bg-secondary-container text-on-secondary-container rounded text-xs mr-1">' + _escapeHTML(t) + '</span>';
-                }).join('');
+                var tags = (f.tags || meta.tags || []).slice(0, 4).map(_renderTagPill).join('');
+                var moreTags = (f.tags || meta.tags || []).length > 4 ? '<span class="text-xs text-text-tertiary">+' + ((f.tags || meta.tags || []).length - 4) + '</span>' : '';
 
-                return '<tr class="border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors group">' +
-                    '<td class="px-3 py-3">' +
-                        '<button onclick="playAudio(\'' + _escapeHTML(filePath).replace(/'/g, "\\'") + '\', \'' + _escapeHTML(fileName).replace(/'/g, "\\'") + '\')" ' +
-                        'class="w-8 h-8 flex items-center justify-center rounded-full bg-surface-container-high hover:bg-primary/20 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer">' +
-                            '<span class="material-symbols-outlined text-on-surface text-sm">play_arrow</span>' +
-                        '</button>' +
-                    '</td>' +
-                    '<td class="px-5 py-3 text-on-surface truncate max-w-xs">' + _escapeHTML(fileName) + '</td>' +
-                    '<td class="px-5 py-3"><span class="px-2 py-0.5 bg-surface-container-high rounded text-xs font-medium text-on-surface-variant">' + _escapeHTML(f.format || meta.format || '--') + '</span></td>' +
-                    '<td class="px-5 py-3 text-on-surface-variant font-mono">' + _escapeHTML(f.duration || meta.duration || '--') + '</td>' +
-                    '<td class="px-5 py-3 text-on-surface-variant">' + (f.tempo || meta.bpm ? _escapeHTML(f.tempo || meta.bpm) + ' BPM' : '--') + '</td>' +
-                    '<td class="px-5 py-3 text-on-surface-variant">' + tags + '</td>' +
-                    '</tr>';
+                return '<div class="result-card flex items-center gap-md px-lg py-md hover:bg-bg-elevated transition-colors cursor-pointer">' +
+                    '<button onclick="playAudio(\'' + _escapeHTML(filePath).replace(/'/g, "\\'") + '\', \'' + _escapeHTML(fileName).replace(/'/g, "\\'") + '\')" ' +
+                    'class="play-button w-9 h-9 flex-shrink-0 flex items-center justify-center" data-file="' + _escapeHTML(filePath) + '">' +
+                        '<span class="material-symbols-outlined text-sm">play_arrow</span>' +
+                    '</button>' +
+                    '<div class="w-24 h-12 bg-bg-base rounded overflow-hidden flex-shrink-0">' +
+                        '<div class="w-full h-full bg-gradient-to-r from-waveform-low via-waveform-mid to-waveform-high opacity-30"></div>' +
+                    '</div>' +
+                    '<div class="flex-1 min-w-0">' +
+                        '<p class="text-sm font-medium text-text-primary truncate">' + _escapeHTML(fileName) + '</p>' +
+                        '<div class="flex items-center gap-md mt-xs">' +
+                            '<span class="text-xs font-mono text-text-secondary">' + _escapeHTML(f.duration || meta.duration || '--') + '</span>' +
+                            '<span class="text-xs font-mono text-text-secondary">' + (f.tempo || meta.bpm ? _escapeHTML(f.tempo || meta.bpm) + ' BPM' : '--') + '</span>' +
+                            '<span class="text-xs text-text-tertiary">' + _formatBytes(f.size || meta.file_size) + '</span>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="flex flex-wrap gap-xs flex-shrink-0">' + tags + moreTags + '</div>' +
+                    '<span class="tag-pill tag-pill--format flex-shrink-0">' + _escapeHTML(f.format || meta.format || '--') + '</span>' +
+                    '</div>';
             }).join('');
         }).catch(function (err) {
-            tbody.innerHTML = '<tr><td colspan="6" class="px-5 py-10 text-center text-error">' + _escapeHTML(err.message || 'Error loading results.') + '</td></tr>';
+            resultsBody.innerHTML = '<div class="px-lg py-xl text-center text-error">' +
+                '<span class="material-symbols-outlined text-4xl block mb-md">error</span>' +
+                '<p class="text-sm">Search failed. Please try again.</p></div>';
             console.warn('Library search error:', err);
         });
     }
 
     /* ================================================================
-       5. EDITOR — editorInit()
+       6. EDITOR — editorInit()
        ================================================================ */
     var editorState = { selectedId: null, selectedData: null, searchTimeout: null };
 
@@ -413,17 +674,17 @@
         if (!list) return;
 
         if (!query) {
-            list.innerHTML = '<div class="text-center py-8 text-on-surface-variant text-sm">' +
+            list.innerHTML = '<div class="text-center py-8 text-text-tertiary text-sm">' +
                 '<span class="material-symbols-outlined text-2xl block mb-1 opacity-50">folder_open</span>Search to find files</div>';
             return;
         }
 
-        list.innerHTML = '<div class="text-center py-8"><span class="material-symbols-outlined text-2xl animate-spin text-on-surface-variant">sync</span></div>';
+        list.innerHTML = '<div class="text-center py-8"><div class="spinner mx-auto"></div></div>';
 
         _fetchJSON('/api/search?q=' + encodeURIComponent(query) + '&limit=50').then(function (data) {
             var files = data.results || [];
             if (files.length === 0) {
-                list.innerHTML = '<div class="text-center py-8 text-on-surface-variant text-sm">No files found.</div>';
+                list.innerHTML = '<div class="text-center py-8 text-text-tertiary text-sm">No files found.</div>';
                 return;
             }
 
@@ -431,7 +692,7 @@
                 var id = f.id || f.file_path || f.path || '';
                 var name = f.filename || f.name || '--';
                 return '<button onclick="_editorSelectFile(\'' + _escapeHTML(id).replace(/'/g, "\\'") + '\')" ' +
-                    'class="w-full text-left px-3 py-2 rounded-lg text-sm text-on-surface-variant hover:bg-surface-container-high transition-colors flex items-center gap-2 file-item" ' +
+                    'class="w-full text-left px-md py-sm rounded-lg text-sm text-text-secondary hover:bg-bg-elevated transition-colors flex items-center gap-sm file-item" ' +
                     'data-id="' + _escapeHTML(id) + '">' +
                     '<span class="material-symbols-outlined text-base opacity-60">audio_file</span>' +
                     '<span class="truncate">' + _escapeHTML(name) + '</span>' +
@@ -446,10 +707,10 @@
     function _editorSelectFile(id) {
         // Highlight active
         document.querySelectorAll('.file-item').forEach(function (el) {
-            el.classList.remove('bg-surface-container-highest', 'text-primary');
+            el.classList.remove('bg-bg-elevated', 'text-text-primary');
         });
         var active = document.querySelector('.file-item[data-id="' + CSS.escape(id) + '"]');
-        if (active) active.classList.add('bg-surface-container-highest', 'text-primary');
+        if (active) active.classList.add('bg-bg-elevated', 'text-text-primary');
 
         editorState.selectedId = id;
         document.getElementById('edit-file-id').value = id;
@@ -477,11 +738,9 @@
             var tagsDiv = document.getElementById('meta-tags');
             if (tagsDiv) {
                 if (f.tags && f.tags.length) {
-                    tagsDiv.innerHTML = f.tags.map(function (t) {
-                        return '<span class="px-2 py-0.5 bg-secondary-container text-on-secondary-container rounded text-xs">' + _escapeHTML(t) + '</span>';
-                    }).join('');
+                    tagsDiv.innerHTML = f.tags.map(_renderTagPill).join('');
                 } else {
-                    tagsDiv.innerHTML = '<span class="text-xs text-on-surface-variant">None</span>';
+                    tagsDiv.innerHTML = '<span class="text-xs text-text-tertiary">None</span>';
                 }
             }
 
@@ -498,9 +757,7 @@
             if (f.manual_tags && f.manual_tags.length) {
                 if (mtDiv) mtDiv.classList.remove('hidden');
                 if (mtDisplay) {
-                    mtDisplay.innerHTML = f.manual_tags.map(function (t) {
-                        return '<span class="px-2 py-0.5 bg-tertiary/20 text-tertiary rounded text-xs">' + _escapeHTML(t) + '</span>';
-                    }).join('');
+                    mtDisplay.innerHTML = f.manual_tags.map(_renderTagPill).join('');
                 }
             } else {
                 if (mtDiv) mtDiv.classList.add('hidden');
@@ -562,7 +819,7 @@
     window._editorSelectFile = _editorSelectFile;
 
     /* ================================================================
-       6. SETTINGS — settingsInit()
+       7. SETTINGS — settingsInit()
        ================================================================ */
     function settingsInit() {
         // Copy buttons already wired via inline onclick="copyToClipboard(...)" in template.
@@ -610,8 +867,8 @@
        Each page template calls its init from {% block scripts %}.
        ================================================================ */
     window.dashboardInit = dashboardInit;
-    window.libraryInit   = libraryInit;
-    window.editorInit    = editorInit;
-    window.settingsInit  = settingsInit;
+    window.libraryInit = libraryInit;
+    window.editorInit = editorInit;
+    window.settingsInit = settingsInit;
 
 })();

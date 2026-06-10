@@ -5,94 +5,87 @@
 
 {% block content %}
 <!-- Page Header -->
-<div class="flex justify-between items-end mb-6">
+<div class="flex justify-between items-end mb-lg">
     <div>
-        <h2 class="text-lg font-semibold text-primary">Library Overview</h2>
-        <p class="text-sm text-on-surface-variant">Real-time status of your audio catalog.</p>
+        <h2 class="text-2xl font-bold text-text-primary tracking-tight">Library Overview</h2>
+        <p class="text-sm text-text-secondary mt-xs">Real-time status of your audio catalog.</p>
     </div>
-    <div class="relative w-72">
-        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">search</span>
-        <input type="text" id="quick-search" placeholder="Quick search..."
-            class="w-full pl-10 pr-4 py-2 bg-surface-container-high border border-outline-variant/30 rounded-lg text-sm text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-colors"/>
-    </div>
+    <button class="btn-primary flex items-center gap-sm">
+        <span class="material-symbols-outlined text-lg">add</span>
+        Ingest Files
+    </button>
 </div>
 
 <!-- Stats Cards Row -->
-<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-lg mb-lg">
     <!-- Total Files -->
-    <div class="bg-surface-container p-5 rounded-xl border border-outline-variant/20 flex flex-col justify-between min-h-[140px] hover:border-primary/20 transition-all">
-        <div class="flex justify-between items-start">
-            <span class="p-2 bg-secondary-container rounded-lg text-primary">
+    <div class="stat-card">
+        <div class="flex justify-between items-start mb-md">
+            <span class="w-10 h-10 flex items-center justify-center rounded-lg bg-accent-dim text-accent">
                 <span class="material-symbols-outlined">audio_file</span>
             </span>
+            <span class="text-xs font-mono text-success">+4.2%</span>
         </div>
-        <div>
-            <p class="text-xs font-medium text-on-surface-variant uppercase tracking-wider mb-1">Total Files</p>
-            <h3 class="text-2xl font-semibold text-primary" id="stat-total-files">--</h3>
-        </div>
+        <p class="text-xs font-semibold text-text-secondary uppercase tracking-widest mb-xs">Total Files</p>
+        <h3 class="stat-number" id="stat-total-files">--</h3>
     </div>
 
     <!-- Formats -->
-    <div class="bg-surface-container p-5 rounded-xl border border-outline-variant/20 flex flex-col justify-between min-h-[140px] hover:border-primary/20 transition-all">
-        <div class="flex justify-between items-start">
-            <span class="p-2 bg-secondary-container rounded-lg text-primary">
+    <div class="stat-card">
+        <div class="flex justify-between items-start mb-md">
+            <span class="w-10 h-10 flex items-center justify-center rounded-lg bg-tag-tech-bg text-tag-tech">
                 <span class="material-symbols-outlined">equalizer</span>
             </span>
         </div>
-        <div>
-            <p class="text-xs font-medium text-on-surface-variant uppercase tracking-wider mb-1">Formats</p>
-            <h3 class="text-2xl font-semibold text-primary" id="stat-formats">--</h3>
-        </div>
+        <p class="text-xs font-semibold text-text-secondary uppercase tracking-widest mb-xs">Formats</p>
+        <h3 class="stat-number" id="stat-formats">--</h3>
     </div>
 
     <!-- Avg Duration -->
-    <div class="bg-surface-container p-5 rounded-xl border border-outline-variant/20 flex flex-col justify-between min-h-[140px] hover:border-primary/20 transition-all">
-        <div class="flex justify-between items-start">
-            <span class="p-2 bg-secondary-container rounded-lg text-primary">
+    <div class="stat-card">
+        <div class="flex justify-between items-start mb-md">
+            <span class="w-10 h-10 flex items-center justify-center rounded-lg bg-tag-emotion-bg text-tag-emotion">
                 <span class="material-symbols-outlined">timer</span>
             </span>
         </div>
-        <div>
-            <p class="text-xs font-medium text-on-surface-variant uppercase tracking-wider mb-1">Avg Duration</p>
-            <h3 class="text-2xl font-semibold text-primary" id="stat-avg-duration">--</h3>
-        </div>
+        <p class="text-xs font-semibold text-text-secondary uppercase tracking-widest mb-xs">Avg Duration</p>
+        <h3 class="stat-number" id="stat-avg-duration">--</h3>
     </div>
 
     <!-- Total Size -->
-    <div class="bg-surface-container p-5 rounded-xl border border-outline-variant/20 flex flex-col justify-between min-h-[140px] hover:border-primary/20 transition-all">
-        <div class="flex justify-between items-start">
-            <span class="p-2 bg-secondary-container rounded-lg text-primary">
+    <div class="stat-card">
+        <div class="flex justify-between items-start mb-md">
+            <span class="w-10 h-10 flex items-center justify-center rounded-lg bg-tag-category-bg text-tag-category">
                 <span class="material-symbols-outlined">storage</span>
             </span>
         </div>
-        <div>
-            <p class="text-xs font-medium text-on-surface-variant uppercase tracking-wider mb-1">Total Size</p>
-            <h3 class="text-2xl font-semibold text-primary" id="stat-total-size">--</h3>
-        </div>
+        <p class="text-xs font-semibold text-text-secondary uppercase tracking-widest mb-xs">Total Size</p>
+        <h3 class="stat-number" id="stat-total-size">--</h3>
     </div>
 </div>
 
 <!-- Recent Files Table -->
-<section class="bg-surface-container rounded-xl border border-outline-variant/20 overflow-hidden">
-    <div class="flex justify-between items-center p-5 border-b border-outline-variant/20">
-        <h3 class="text-base font-semibold text-on-surface">Recent Files</h3>
-        <a href="/library" class="text-xs font-medium text-primary hover:underline">View All</a>
+<section class="bg-bg-surface rounded-xl border border-border-default overflow-hidden">
+    <div class="flex justify-between items-center p-lg border-b border-border-subtle">
+        <h3 class="text-base font-semibold text-text-primary">Recent Files</h3>
+        <a href="/library" class="text-xs font-medium text-accent hover:text-accent-hover transition-colors">View All →</a>
     </div>
     <div class="overflow-x-auto">
-        <table class="w-full text-sm">
+        <table class="amm-table">
             <thead>
-                <tr class="border-b border-outline-variant/20">
-                    <th class="text-left px-5 py-3 text-xs font-medium text-on-surface-variant uppercase tracking-wider">Filename</th>
-                    <th class="text-left px-5 py-3 text-xs font-medium text-on-surface-variant uppercase tracking-wider">Format</th>
-                    <th class="text-left px-5 py-3 text-xs font-medium text-on-surface-variant uppercase tracking-wider">Duration</th>
-                    <th class="text-left px-5 py-3 text-xs font-medium text-on-surface-variant uppercase tracking-wider">Tempo</th>
-                    <th class="text-left px-5 py-3 text-xs font-medium text-on-surface-variant uppercase tracking-wider">Size</th>
+                <tr>
+                    <th>Filename</th>
+                    <th>Format</th>
+                    <th>Duration</th>
+                    <th>Tempo</th>
+                    <th>Size</th>
+                    <th>Tags</th>
                 </tr>
             </thead>
             <tbody id="recent-files-body">
                 <tr>
-                    <td colspan="5" class="px-5 py-10 text-center text-on-surface-variant">
-                        <span class="material-symbols-outlined text-3xl block mb-2 opacity-50">hourglass_empty</span>
+                    <td colspan="6" class="px-lg py-xl text-center text-text-tertiary">
+                        <span class="material-symbols-outlined text-3xl block mb-sm opacity-50">hourglass_empty</span>
                         Loading recent files...
                     </td>
                 </tr>
@@ -104,6 +97,27 @@
 
 {% block scripts %}
 <script>
+    // Helper: Determine tag dimension from tag name
+    function getTagDimension(tag) {
+        const techTags = ['bpm', 'lufs', 'sample rate', 'bit depth', 'tempo', 'key'];
+        const emotionTags = ['dark', 'bright', 'calm', 'energetic', 'warm', 'cold', 'aggressive', 'peaceful'];
+        const categoryTags = ['loop', 'one-shot', 'percussive', 'sustained', 'bass', 'lead', 'pad', 'fx'];
+        const formatTags = ['wav', 'mp3', 'flac', 'aiff', 'ogg', 'aac'];
+
+        const lower = tag.toLowerCase();
+        if (techTags.some(t => lower.includes(t))) return 'tech';
+        if (emotionTags.some(t => lower.includes(t))) return 'emotion';
+        if (categoryTags.some(t => lower.includes(t))) return 'category';
+        if (formatTags.some(t => lower.includes(t))) return 'format';
+        return 'category'; // default
+    }
+
+    // Helper: Render tag pill
+    function renderTagPill(tag) {
+        const dim = getTagDimension(tag);
+        return `<span class="tag-pill tag-pill--${dim}">${tag}</span>`;
+    }
+
     // Load dashboard stats
     async function loadDashboard() {
         try {
@@ -129,30 +143,44 @@
                 const files = data.files || data || [];
                 const tbody = document.getElementById('recent-files-body');
                 if (files.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="px-5 py-10 text-center text-on-surface-variant">No files found. Run a scan to populate your library.</td></tr>';
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="px-lg py-xl text-center text-text-tertiary">
+                                No files found. Run a scan to populate your library.
+                            </td>
+                        </tr>`;
                     return;
                 }
-                tbody.innerHTML = files.map(f => `
-                    <tr class="border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors">
-                        <td class="px-5 py-3 text-on-surface truncate max-w-xs">${f.filename || f.name || '--'}</td>
-                        <td class="px-5 py-3 text-on-surface-variant">${f.format || '--'}</td>
-                        <td class="px-5 py-3 text-on-surface-variant font-mono">${f.duration || '--'}</td>
-                        <td class="px-5 py-3 text-on-surface-variant">${f.tempo ? f.tempo + ' BPM' : '--'}</td>
-                        <td class="px-5 py-3 text-on-surface-variant">${f.size || '--'}</td>
-                    </tr>
-                `).join('');
+                tbody.innerHTML = files.map(f => {
+                    const tags = f.tags || [];
+                    const tagHtml = tags.slice(0, 3).map(renderTagPill).join('');
+                    const moreTags = tags.length > 3 ? `<span class="text-xs text-text-tertiary">+${tags.length - 3}</span>` : '';
+                    return `
+                        <tr class="result-card">
+                            <td class="px-md py-sm">
+                                <div class="flex items-center gap-sm">
+                                    <button class="play-button w-8 h-8 flex items-center justify-center" data-file="${f.filename || f.name || ''}">
+                                        <span class="material-symbols-outlined text-sm">play_arrow</span>
+                                    </button>
+                                    <span class="text-text-primary truncate max-w-xs">${f.filename || f.name || '--'}</span>
+                                </div>
+                            </td>
+                            <td class="px-md py-sm">
+                                <span class="tag-pill tag-pill--format">${f.format || '--'}</span>
+                            </td>
+                            <td class="px-md py-sm font-mono text-text-secondary">${f.duration || '--'}</td>
+                            <td class="px-md py-sm font-mono text-text-secondary">${f.tempo ? f.tempo + ' BPM' : '--'}</td>
+                            <td class="px-md py-sm text-text-secondary">${f.size || '--'}</td>
+                            <td class="px-md py-sm">
+                                <div class="flex flex-wrap gap-xs">${tagHtml}${moreTags}</div>
+                            </td>
+                        </tr>`;
+                }).join('');
             }
         } catch (e) {
             console.warn('Files API not available:', e);
         }
     }
-
-    // Quick search handler
-    document.getElementById('quick-search')?.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && this.value.trim()) {
-            window.location.href = '/library?q=' + encodeURIComponent(this.value.trim());
-        }
-    });
 
     loadDashboard();
     loadRecentFiles();

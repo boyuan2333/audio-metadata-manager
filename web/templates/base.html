@@ -6,6 +6,7 @@
     <title>{% block title %}AMM{% endblock %} — Audio Metadata Manager</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
     <link href="/static/style.css" rel="stylesheet"/>
     <script>
@@ -14,40 +15,82 @@
             theme: {
                 extend: {
                     colors: {
-                        "surface": "#121416",
-                        "surface-dim": "#121416",
-                        "surface-bright": "#38393c",
-                        "surface-container-lowest": "#0c0e10",
-                        "surface-container-low": "#1a1c1e",
-                        "surface-container": "#1e2022",
-                        "surface-container-high": "#282a2c",
-                        "surface-container-highest": "#333537",
-                        "on-surface": "#e2e2e5",
-                        "on-surface-variant": "#c5c6ca",
-                        "primary": "#eef1f7",
-                        "on-primary": "#2c3136",
-                        "primary-container": "#d1d5db",
-                        "secondary": "#bdc7d8",
-                        "on-secondary": "#27313e",
-                        "secondary-container": "#404a57",
-                        "on-secondary-container": "#afb9c9",
-                        "outline": "#8f9194",
-                        "outline-variant": "#44474a",
-                        "error": "#ffb4ab",
-                        "on-error": "#690005",
-                        "error-container": "#93000a",
-                        "tertiary": "#ebf1ff",
-                        "on-tertiary": "#273140",
+                        // Base surfaces — from DESIGN.md
+                        "bg-base": "#0A0A0F",
+                        "bg-surface": "#12121A",
+                        "bg-elevated": "#1A1A24",
+                        "bg-overlay": "#22222E",
+
+                        // Text
+                        "text-primary": "#E8E8ED",
+                        "text-secondary": "#8B8B9A",
+                        "text-tertiary": "#5A5A6A",
+                        "text-inverse": "#0A0A0F",
+
+                        // Accent (teal-cyan — audio tool standard)
+                        "accent": "#00D4AA",
+                        "accent-hover": "#00F0C0",
+                        "accent-muted": "#1A3D35",
+                        "accent-dim": "#112A25",
+
+                        // Tag dimensions
+                        "tag-tech": "#4A9EFF",
+                        "tag-tech-bg": "#152233",
+                        "tag-emotion": "#FF8A50",
+                        "tag-emotion-bg": "#332218",
+                        "tag-category": "#50E3C2",
+                        "tag-category-bg": "#1A332E",
+                        "tag-format": "#A78BFA",
+                        "tag-format-bg": "#221A33",
+
+                        // Waveform gradient
+                        "waveform-low": "#FF6B35",
+                        "waveform-mid": "#00D4AA",
+                        "waveform-high": "#4A9EFF",
+
+                        // Feedback
+                        "success": "#00D4AA",
+                        "warning": "#FFB84D",
+                        "error": "#FF5A5A",
+                        "info": "#4A9EFF",
+
+                        // Borders
+                        "border-subtle": "#16161F",
+                        "border-default": "#1F1F2C",
+                        "border-strong": "#2E2E3F",
+
+                        // Glow
+                        "glow-accent": "#00D4AA",
+                        "glow-pulse": "#1A3D35",
                     },
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    borderRadius: {
+                        xs: '2px',
+                        sm: '4px',
+                        md: '8px',
+                        lg: '12px',
+                        xl: '16px',
+                        full: '9999px',
+                    },
+                    spacing: {
+                        xs: '4px',
+                        sm: '8px',
+                        md: '16px',
+                        lg: '24px',
+                        xl: '32px',
+                        xxl: '48px',
+                    },
                 },
             },
         }
     </script>
     <style>
         body {
-            background-color: #121416;
-            color: #e2e2e5;
+            background-color: #0A0A0F;
+            color: #E8E8ED;
             font-family: 'Inter', sans-serif;
         }
         .material-symbols-outlined {
@@ -56,10 +99,11 @@
         }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #44474a; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #2E2E3F; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #3E3E4F; }
         .nav-link.active {
-            background-color: #333537;
-            color: #eef1f7;
+            background-color: #1A1A24;
+            color: #00D4AA;
             font-weight: 600;
         }
     </style>
@@ -67,70 +111,92 @@
 </head>
 <body class="flex min-h-screen overflow-hidden dark">
     <!-- Sidebar -->
-    <aside class="h-screen w-64 fixed left-0 top-0 bg-surface-container flex flex-col p-4 gap-2 border-r border-outline-variant/30 z-50">
+    <aside class="h-screen w-64 fixed left-0 top-0 bg-bg-surface flex flex-col p-md gap-sm border-r border-border-default z-50">
         <!-- Brand -->
-        <div class="mb-8 px-2">
-            <h1 class="text-xl font-semibold text-primary">AMM</h1>
-            <p class="text-xs font-medium text-on-surface-variant tracking-wider uppercase">Audio Metadata Manager</p>
+        <div class="mb-xl px-sm">
+            <h1 class="text-xl font-bold text-accent">AMM</h1>
+            <p class="text-xs font-medium text-text-secondary tracking-wider uppercase">Audio Metadata Manager</p>
         </div>
 
         <!-- Navigation -->
-        <nav class="flex-1 flex flex-col gap-1">
-            <a href="/" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-highest transition-colors cursor-pointer {% if active_page == 'dashboard' %}active{% endif %}">
+        <nav class="flex-1 flex flex-col gap-xs">
+            <a href="/" class="nav-link flex items-center gap-md px-md py-sm rounded-lg text-text-secondary hover:bg-bg-elevated transition-colors cursor-pointer {% if active_page == 'dashboard' %}active{% endif %}">
                 <span class="material-symbols-outlined">dashboard</span>
                 <span class="text-xs font-medium tracking-wider">Dashboard</span>
             </a>
-            <a href="/library" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-highest transition-colors cursor-pointer {% if active_page == 'library' %}active{% endif %}">
+            <a href="/library" class="nav-link flex items-center gap-md px-md py-sm rounded-lg text-text-secondary hover:bg-bg-elevated transition-colors cursor-pointer {% if active_page == 'library' %}active{% endif %}">
                 <span class="material-symbols-outlined">library_music</span>
                 <span class="text-xs font-medium tracking-wider">Library</span>
             </a>
-            <a href="/editor" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-highest transition-colors cursor-pointer {% if active_page == 'editor' %}active{% endif %}">
+            <a href="/editor" class="nav-link flex items-center gap-md px-md py-sm rounded-lg text-text-secondary hover:bg-bg-elevated transition-colors cursor-pointer {% if active_page == 'editor' %}active{% endif %}">
                 <span class="material-symbols-outlined">edit_note</span>
                 <span class="text-xs font-medium tracking-wider">Metadata Editor</span>
             </a>
-            <a href="/settings" class="nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-highest transition-colors cursor-pointer {% if active_page == 'settings' %}active{% endif %}">
+            <a href="/settings" class="nav-link flex items-center gap-md px-md py-sm rounded-lg text-text-secondary hover:bg-bg-elevated transition-colors cursor-pointer {% if active_page == 'settings' %}active{% endif %}">
                 <span class="material-symbols-outlined">settings</span>
                 <span class="text-xs font-medium tracking-wider">Settings</span>
             </a>
         </nav>
 
         <!-- Footer -->
-        <div class="border-t border-outline-variant/30 pt-3 px-2">
-            <p class="text-xs text-on-surface-variant">v0.1-b9 · Local Tool</p>
+        <div class="border-t border-border-subtle pt-sm px-sm">
+            <p class="text-xs text-text-tertiary font-mono">v0.1-b9 · Local Tool</p>
         </div>
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 ml-64 flex flex-col h-screen overflow-hidden">
-        <!-- Top Bar -->
-        <header class="h-16 flex items-center justify-between px-6 border-b border-outline-variant/30 bg-surface-container-low shrink-0">
-            <div class="flex items-center gap-4 flex-1">
-                <h2 class="text-lg font-semibold text-primary">{% block page_title %}AMM{% endblock %}</h2>
+    <main class="flex-1 ml-64 flex flex-col h-screen overflow-hidden bg-bg-base">
+        <!-- Top Bar with AI Search -->
+        <header class="h-16 flex items-center justify-between px-lg border-b border-border-default bg-bg-surface shrink-0">
+            <div class="flex items-center gap-md flex-1">
+                <h2 class="text-lg font-semibold text-text-primary">{% block page_title %}AMM{% endblock %}</h2>
             </div>
-            <!-- Global Search -->
-            <div class="relative w-96">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">search</span>
-                <input type="text" id="global-search" placeholder="Search tracks, tags, or files..."
-                    class="w-full pl-10 pr-4 py-2 bg-surface-container-high border border-outline-variant/30 rounded-lg text-sm text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-colors"/>
+            <!-- Global Search with AI Glow -->
+            <div class="relative w-[480px]">
+                <span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-text-tertiary text-lg">search</span>
+                <input type="text" id="global-search" placeholder="Search tracks, tags, or ask in natural language..."
+                    class="search-input w-full pl-12 pr-md py-md bg-bg-surface rounded-lg text-sm text-text-primary placeholder-text-tertiary focus:outline-none transition-all"/>
+                <kbd class="absolute right-md top-1/2 -translate-y-1/2 kbd-badge">⌘K</kbd>
             </div>
         </header>
 
         <!-- Page Content -->
-        <div class="flex-1 overflow-y-auto custom-scrollbar p-6">
+        <div class="flex-1 overflow-y-auto custom-scrollbar p-lg">
             {% block content %}{% endblock %}
         </div>
     </main>
 
-    <!-- Global Audio Player (fixed bottom) -->
-    <div id="audio-player" class="fixed bottom-0 left-64 right-0 h-16 bg-surface-container border-t border-outline-variant/30 flex items-center px-6 gap-4 z-40 hidden">
-        <button id="player-play" class="w-8 h-8 flex items-center justify-center rounded-full bg-surface-container-high hover:bg-surface-container-highest transition-colors">
-            <span class="material-symbols-outlined text-on-surface text-sm">play_arrow</span>
+    <!-- Global Mini Player (fixed bottom) -->
+    <div id="audio-player" class="mini-player fixed bottom-0 left-64 right-0 bg-bg-surface border-t border-border-default flex items-center px-lg gap-md z-40 hidden">
+        <!-- Play Button -->
+        <button id="player-play" class="play-button w-9 h-9 flex items-center justify-center transition-all">
+            <span class="material-symbols-outlined text-sm">play_arrow</span>
         </button>
-        <div class="flex-1">
-            <p id="player-filename" class="text-sm font-medium text-primary truncate">No track selected</p>
-            <p id="player-time" class="text-xs text-on-surface-variant font-mono">00:00 / 00:00</p>
+
+        <!-- Track Info -->
+        <div class="flex-shrink-0 w-48">
+            <p id="player-filename" class="text-sm font-medium text-text-primary truncate">No track selected</p>
+            <p id="player-time" class="text-xs text-text-secondary font-mono">00:00 / 00:00</p>
         </div>
-        <input type="range" id="player-volume" min="0" max="1" step="0.01" value="0.8" class="w-20 accent-primary"/>
+
+        <!-- Waveform Container -->
+        <div class="flex-1 flex items-center gap-sm">
+            <div id="waveform-container" class="waveform-container flex-1">
+                <canvas id="waveform-canvas" class="w-full h-full"></canvas>
+                <div id="waveform-progress" class="waveform-progress"></div>
+            </div>
+        </div>
+
+        <!-- Volume -->
+        <div class="flex items-center gap-sm">
+            <span class="material-symbols-outlined text-text-tertiary text-sm">volume_up</span>
+            <input type="range" id="player-volume" min="0" max="1" step="0.01" value="0.8" class="volume-slider w-20"/>
+        </div>
+
+        <!-- Expand Toggle -->
+        <button id="player-expand" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-bg-overlay transition-colors text-text-tertiary">
+            <span class="material-symbols-outlined text-sm">expand_less</span>
+        </button>
     </div>
 
     <script src="/static/app.js"></script>
