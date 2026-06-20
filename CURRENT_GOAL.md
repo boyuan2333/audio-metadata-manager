@@ -1,141 +1,113 @@
 # CURRENT_GOAL.md
 
 ## Version
-- Current repo version: `v0.1-b9` 🚧 IN PROGRESS
-- Previous version: `v0.1-b8` (Unified Search + Library Report) ✅ COMPLETE
-- Current milestone: `v0.1-b9` (Web UI MVP)
+
+- Current repo version: `v0.1-b10` planned
+- Previous milestone: `v0.1-b9` Web UI MVP exploration
+- Current milestone: `v0.1-b10` First-Run Scan Workflow
 
 ---
 
-## Goal (v0.1-b9) — Web UI MVP
+## Goal
 
-**Core idea:** Add a local web interface (FastAPI + browser) so audio producers can search, preview, and manage samples without using the CLI.
+Build a Web-first setup and scan workflow so a non-technical audio producer can start AMM, choose a sample folder, create a managed local library, scan from the UI, then search and audition results without touching CLI commands or JSON paths.
 
-**Why this matters:**
-- CLI is not friendly for non-technical users (audio producers/musicians)
-- No way to preview/listen to search results quickly
-- Need to validate if audio producers will actually use AMM before investing in desktop app
+Product source of truth:
 
-**Product roadmap:**
-- Phase 1 (v0.1-b9): FastAPI + Web UI — validate core workflow
-- Phase 2: Polish experience (waveform, batch ops, favorites)
-- Phase 3: Tauri desktop packaging for distribution
+- PRD: `docs/product/amm-retrieval-cockpit-prd.md`
+- Implementation plan: `docs/plans/2026-06-20-first-run-scan-workflow.md`
+- Architecture roadmap: `docs/development/amm-architecture-roadmap.md`
 
 ---
 
-## v0.1-b9 Deliverables
+## Product Rule
 
-### T1: FastAPI Server Entry
-- [ ] `web_server.py` — Main FastAPI app, route registration, static files
-- [ ] `requirements.txt` — Add fastapi, uvicorn
+Do not make the user manage `library.json`, database paths, or config files. AMM may show advanced storage paths for debugging, but setup should be expressed as:
 
-### T2: Search API
-- [ ] `web/api_search.py` — GET /api/search?q={query}&limit={n}
-- [ ] Call unified_search, return JSON results
-
-### T3: Audio Streaming API
-- [ ] `web/api_audio.py` — GET /api/audio/{file_path}
-- [ ] Stream audio file for browser playback
-- [ ] Security: restrict to configured sample directory
-
-### T4: Report API
-- [ ] `web/api_report.py` — GET /api/report
-- [ ] Call report module, return JSON stats
-
-### T5: Sample Detail + Edit API
-- [x] `web/api_sample.py` — GET /api/sample/{id}, PUT /api/sample/{id}/review
-- [x] Read/write review overrides
-
-### T6: Search Page (Frontend)
-- [ ] `web/static/index.html` — Search box, filters, results table, audio player
-
-### T7: Report Page (Frontend)
-- [ ] `web/static/report.html` — Library stats visualization
-
-### T8: Frontend Logic
-- [ ] `web/static/app.js` — API calls, DOM updates, audio playback
-
-### T9: Styles
-- [ ] `web/static/style.css` — Clean, minimal UI
-
-### T10: API Tests
-- [ ] `tests/test_web_api.py` — Test all API endpoints
-
-### T11: Documentation
-- [ ] `README.md` — Add Web UI section
-- [ ] `CURRENT_GOAL.md` — Update to v0.1-b9
+1. Choose sample folder.
+2. Create library.
+3. Scan.
+4. Search and audition.
 
 ---
 
-## Architecture
+## v0.1-b10 Required Deliverables
 
-```
-Browser (HTML/JS)
-    │
-    ▼
-FastAPI (web_server.py)
-    │
-    ├── /api/search     → unified_search.py
-    ├── /api/audio      → file streaming
-    ├── /api/report     → report.py
-    └── /api/sample     → schema.py + review
-    │
-    ▼
-JSON library + audio files
-```
+1. Core managed library service
+   - `audio_metadata.library`
+   - Default managed library path: `<sample-folder>/.amm/library.json`
+   - Summary helpers for record count and storage status
 
----
+2. First-run setup wizard
+   - `/setup` route
+   - Redirect from `/` when no usable library exists
+   - Sample folder input
+   - Create Library action
+   - Scan action
+   - Open Library action after scan
 
-## API Design
+3. UI scan workflow
+   - `POST /api/scan`
+   - Scan button in setup
+   - Scan button/status in Library
+   - Results refresh after scan
 
-### Search
-```
-GET /api/search?q=dark+loop+120bpm&limit=20
-→ { "query": "...", "strategy": "...", "total": 23, "results": [...] }
-```
+4. Library search cockpit improvements
+   - Search remains the primary workspace
+   - Result rows support play
+   - Result rows expose a correction/edit entry point
+   - Empty states explain missing library, missing scan, no results, and broken audio paths
 
-### Audio
-```
-GET /api/audio/path/to/file.wav
-→ audio/mpeg (stream)
-```
+5. Remove misleading UI
+   - No visible Library Path input
+   - No dead rescan/reindex buttons
+   - No setup flow that requires CLI indexing first
+   - No primary "Database" wording for normal users
 
-### Report
-```
-GET /api/report
-→ { "total_files": 1562, "format_distribution": {...}, ... }
-```
-
-### Sample Detail
-```
-GET /api/sample/{id}
-→ { full metadata }
-
-PUT /api/sample/{id}/review
-→ { "overrides": {...}, "notes": "..." }
-```
+6. Language baseline
+   - English and Simplified Chinese for global navigation, setup, settings, and main Library actions
+   - Full historical page translation is not required for this milestone
 
 ---
 
-## Success Criteria
+## Non-Goals
 
-1. `python web_server.py` starts the server
-2. Browser opens http://localhost:8000
-3. Search "kick drum" returns results with play buttons
-4. Click ▶ plays audio
-5. Report page shows library stats
-6. Edit sample tags and save
-7. `pytest tests/test_web_api.py -v` passes
-8. `pytest tests/ -v` — no regression
+- Desktop packaging
+- Cloud sync
+- Multi-folder library management
+- Watch mode
+- Full task queue
+- Full report/dashboard polish
+- Vector database
+- Full app-wide i18n completeness
 
 ---
 
-## Design Constraints
+## Acceptance Criteria
 
-- No database — continue using JSON
-- No user auth — local tool
-- No waveform — Phase 2
-- No batch operations — Phase 2
-- No Tauri — Phase 3
-- Frontend: vanilla JS only (no React/Vue)
-- All existing CLI commands remain unchanged
+1. Starting without a library opens the setup workflow.
+2. User can enter a sample folder and create a managed library.
+3. Managed library is created at `<sample-folder>/.amm/library.json`.
+4. User can run scan from the Web UI.
+5. After scan, Library page shows searchable results.
+6. User can play at least one result.
+7. User can reach a correction/edit path from a search result.
+8. No user-facing setup control asks for a JSON path.
+9. Focused tests for setup, settings, scan, static UI, and search contracts pass.
+
+---
+
+## Recommended Verification
+
+Use Python 3.12 or 3.13 where possible.
+
+```bash
+python -m pytest tests/test_library_service.py -q
+python -m pytest tests/test_settings_api.py -q
+python -m pytest tests/test_scan_api.py -q
+python -m pytest tests/test_setup_routes.py -q
+python -m pytest tests/test_web_static.py -q
+python -m pytest tests/test_search_api_stability.py -q
+```
+
+Known local issue: Python 3.14 on Windows has shown pytest cleanup failures around `pytest-current`. Treat that as an environment issue only after test bodies have clearly passed.

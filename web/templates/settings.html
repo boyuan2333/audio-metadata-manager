@@ -2,187 +2,99 @@
 
 {% block title %}Settings{% endblock %}
 {% block page_title %}Settings{% endblock %}
+{% block page_title_attrs %}data-i18n="nav.settings"{% endblock %}
 
 {% block content %}
 <div class="max-w-2xl">
-    <!-- Library Configuration -->
-    <section class="bg-surface-container rounded-xl border border-outline-variant/20 p-5 mb-6">
-        <h3 class="text-base font-semibold text-on-surface mb-4 flex items-center gap-2">
+    <section class="bg-bg-surface rounded-lg border border-border-default p-lg mb-lg">
+        <h3 class="text-base font-semibold text-text-primary mb-md flex items-center gap-sm">
             <span class="material-symbols-outlined text-lg">folder_open</span>
-            Library Configuration
+            <span data-i18n="settings.libraryConfig">Library Setup</span>
         </h3>
-        <div class="space-y-4">
-            <!-- Library Path -->
+        <form id="settings-form" class="space-y-md">
             <div>
-                <label class="text-xs font-medium text-on-surface-variant uppercase tracking-wider block mb-1">Library Path</label>
-                <div class="flex items-center gap-2">
-                    <div class="flex-1 bg-surface-container-high border border-outline-variant/30 rounded-lg px-3 py-2 text-sm text-on-surface font-mono">
-                        <span id="library-path">Loading...</span>
-                    </div>
-                    <button onclick="copyToClipboard('library-path')" class="px-3 py-2 rounded-lg text-xs font-medium text-on-surface-variant border border-outline-variant/30 hover:bg-surface-container-high transition-colors flex items-center gap-1">
-                        <span class="material-symbols-outlined text-sm">content_copy</span>
-                    </button>
-                </div>
+                <label for="sample-dir-input" class="amm-label" data-i18n="settings.sampleDirectory">Sample Directory</label>
+                <input id="sample-dir-input" name="sample_dir" type="text"
+                    class="amm-input w-full font-mono text-sm" placeholder="./audio"/>
+                <p class="mt-xs text-xs text-text-secondary" data-i18n="settings.sampleDirectoryHelp">Choose the folder that contains your audio samples. AMM manages its own library file.</p>
             </div>
-
-            <!-- Sample Directory -->
-            <div>
-                <label class="text-xs font-medium text-on-surface-variant uppercase tracking-wider block mb-1">Sample Directory</label>
-                <div class="flex items-center gap-2">
-                    <div class="flex-1 bg-surface-container-high border border-outline-variant/30 rounded-lg px-3 py-2 text-sm text-on-surface font-mono">
-                        <span id="sample-dir">Loading...</span>
-                    </div>
-                    <button onclick="copyToClipboard('sample-dir')" class="px-3 py-2 rounded-lg text-xs font-medium text-on-surface-variant border border-outline-variant/30 hover:bg-surface-container-high transition-colors flex items-center gap-1">
-                        <span class="material-symbols-outlined text-sm">content_copy</span>
-                    </button>
-                </div>
+            <div class="flex flex-wrap items-center gap-sm">
+                <button id="btn-save-settings" type="submit" class="btn-primary flex items-center gap-xs">
+                    <span class="material-symbols-outlined text-sm">save</span>
+                    <span data-i18n="settings.save">Save</span>
+                </button>
+                <button id="btn-create-library" type="button" class="btn-ghost flex items-center gap-xs">
+                    <span class="material-symbols-outlined text-sm">add_circle</span>
+                    <span data-i18n="settings.createLibrary">Create Library</span>
+                </button>
+                <button type="button" onclick="copyToClipboard('sample-dir-input')" class="btn-ghost flex items-center gap-xs">
+                    <span class="material-symbols-outlined text-sm">content_copy</span>
+                    <span data-i18n="settings.copySamples">Copy Samples</span>
+                </button>
+                <span id="settings-status" class="text-xs text-text-secondary"></span>
             </div>
-        </div>
+        </form>
     </section>
 
-    <!-- Database Info -->
-    <section class="bg-surface-container rounded-xl border border-outline-variant/20 p-5 mb-6">
-        <h3 class="text-base font-semibold text-on-surface mb-4 flex items-center gap-2">
+    <section class="bg-bg-surface rounded-lg border border-border-default p-lg mb-lg">
+        <h3 class="text-base font-semibold text-text-primary mb-md flex items-center gap-sm">
             <span class="material-symbols-outlined text-lg">database</span>
-            Database
+            <span data-i18n="settings.database">Advanced Storage</span>
         </h3>
-        <div class="space-y-3">
-            <div class="flex items-center justify-between">
-                <span class="text-sm text-on-surface-variant">Database Path</span>
-                <span id="db-path" class="text-sm text-on-surface font-mono">Loading...</span>
+        <p class="mb-md text-xs text-text-secondary" data-i18n="settings.storageHelp">This path is managed by AMM. You normally do not need to edit it.</p>
+        <div class="space-y-sm">
+            <div class="flex items-center justify-between gap-md">
+                <span class="text-sm text-text-secondary" data-i18n="settings.databasePath">Database Path</span>
+                <span id="db-path" class="text-sm text-text-primary font-mono truncate">Not configured</span>
             </div>
             <div class="flex items-center justify-between">
-                <span class="text-sm text-on-surface-variant">Total Records</span>
-                <span id="db-records" class="text-sm text-on-surface">--</span>
+                <span class="text-sm text-text-secondary" data-i18n="settings.totalRecords">Total Records</span>
+                <span id="db-records" class="text-sm text-text-primary">--</span>
             </div>
             <div class="flex items-center justify-between">
-                <span class="text-sm text-on-surface-variant">Last Scan</span>
-                <span id="last-scan" class="text-sm text-on-surface">--</span>
+                <span class="text-sm text-text-secondary" data-i18n="settings.lastScan">Last Scan</span>
+                <span id="last-scan" class="text-sm text-text-primary">Never</span>
             </div>
         </div>
     </section>
 
-    <!-- Appearance -->
-    <section class="bg-surface-container rounded-xl border border-outline-variant/20 p-5 mb-6">
-        <h3 class="text-base font-semibold text-on-surface mb-4 flex items-center gap-2">
+    <section class="bg-bg-surface rounded-lg border border-border-default p-lg mb-lg">
+        <h3 class="text-base font-semibold text-text-primary mb-md flex items-center gap-sm">
+            <span class="material-symbols-outlined text-lg">language</span>
+            <span data-i18n="settings.language">Language</span>
+        </h3>
+        <label for="settings-language" class="amm-label" data-i18n="settings.interfaceLanguage">Interface Language</label>
+        <select id="settings-language" class="amm-input w-full">
+            <option value="en">English</option>
+            <option value="zh-Hans">Chinese (Simplified)</option>
+        </select>
+    </section>
+
+    <section class="bg-bg-surface rounded-lg border border-border-default p-lg mb-lg">
+        <h3 class="text-base font-semibold text-text-primary mb-md flex items-center gap-sm">
             <span class="material-symbols-outlined text-lg">palette</span>
-            Appearance
+            <span data-i18n="settings.appearance">Appearance</span>
         </h3>
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-sm text-on-surface">Dark Theme</p>
-                <p class="text-xs text-on-surface-variant">Toggle between dark and light mode</p>
+                <p class="text-sm text-text-primary" data-i18n="settings.darkTheme">Dark Theme</p>
+                <p class="text-xs text-text-secondary" data-i18n="settings.darkThemeHelp">Toggle between dark and light mode</p>
             </div>
-            <button id="theme-toggle" class="relative w-12 h-6 bg-surface-container-highest rounded-full transition-colors hover:bg-surface-bright">
-                <span class="absolute left-0.5 top-0.5 w-5 h-5 bg-primary rounded-full transition-transform dark:translate-x-6"></span>
+            <button id="theme-toggle" type="button" class="relative w-12 h-6 bg-bg-overlay rounded-full transition-colors hover:bg-bg-elevated">
+                <span class="absolute left-0.5 top-0.5 w-5 h-5 bg-accent rounded-full transition-transform dark:translate-x-6"></span>
             </button>
         </div>
     </section>
 
-    <!-- Actions -->
-    <section class="bg-surface-container rounded-xl border border-outline-variant/20 p-5 mb-6">
-        <h3 class="text-base font-semibold text-on-surface mb-4 flex items-center gap-2">
-            <span class="material-symbols-outlined text-lg">build</span>
-            Actions
-        </h3>
-        <div class="space-y-3">
-            <button id="btn-rescan" class="w-full bg-primary text-on-primary px-5 py-2.5 rounded-lg text-xs font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
-                <span class="material-symbols-outlined text-sm">sync</span>
-                Rescan Library
-            </button>
-            <button id="btn-reindex" class="w-full px-5 py-2.5 rounded-lg text-xs font-medium text-on-surface-variant border border-outline-variant/30 hover:bg-surface-container-high transition-colors flex items-center justify-center gap-2">
-                <span class="material-symbols-outlined text-sm">refresh</span>
-                Reindex Database
-            </button>
-        </div>
-    </section>
-
-    <!-- Version Info -->
-    <div class="text-center py-4">
-        <p class="text-xs text-on-surface-variant">AMM — Audio Metadata Manager</p>
-        <p class="text-xs text-on-surface-variant">v0.1-b9 · Built with Flask & Tailwind CSS</p>
+    <div class="text-center py-md">
+        <p class="text-xs text-text-tertiary">AMM - Audio Metadata Manager</p>
+        <p class="text-xs text-text-tertiary">v0.1-b9 - Local Tool</p>
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    async function loadSettings() {
-        try {
-            const resp = await fetch('/api/settings');
-            if (resp.ok) {
-                const data = await resp.json();
-                document.getElementById('library-path').textContent = data.library_path || 'Not configured';
-                document.getElementById('sample-dir').textContent = data.sample_dir || 'Not configured';
-                document.getElementById('db-path').textContent = data.db_path || 'Not configured';
-                document.getElementById('db-records').textContent = data.total_records ?? '--';
-                document.getElementById('last-scan').textContent = data.last_scan || 'Never';
-            }
-        } catch (e) {
-            console.warn('Settings API not available:', e);
-            document.getElementById('library-path').textContent = 'Unable to load';
-            document.getElementById('sample-dir').textContent = 'Unable to load';
-        }
-    }
-
-    function copyToClipboard(elementId) {
-        const text = document.getElementById(elementId).textContent;
-        navigator.clipboard.writeText(text).then(() => {
-            // Brief visual feedback
-            const btn = event.currentTarget;
-            const icon = btn.querySelector('.material-symbols-outlined');
-            icon.textContent = 'check';
-            setTimeout(() => { icon.textContent = 'content_copy'; }, 1500);
-        });
-    }
-
-    // Theme toggle placeholder
-    document.getElementById('theme-toggle')?.addEventListener('click', function() {
-        document.documentElement.classList.toggle('dark');
-    });
-
-    // Rescan
-    document.getElementById('btn-rescan')?.addEventListener('click', async function() {
-        this.disabled = true;
-        this.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">sync</span> Scanning...';
-        try {
-            const resp = await fetch('/api/scan', { method: 'POST' });
-            if (resp.ok) {
-                this.innerHTML = '<span class="material-symbols-outlined text-sm">check</span> Scan Complete';
-                loadSettings();
-            } else {
-                this.innerHTML = '<span class="material-symbols-outlined text-sm">error</span> Scan Failed';
-            }
-        } catch (e) {
-            this.innerHTML = '<span class="material-symbols-outlined text-sm">error</span> Network Error';
-        }
-        setTimeout(() => {
-            this.disabled = false;
-            this.innerHTML = '<span class="material-symbols-outlined text-sm">sync</span> Rescan Library';
-        }, 3000);
-    });
-
-    // Reindex
-    document.getElementById('btn-reindex')?.addEventListener('click', async function() {
-        this.disabled = true;
-        this.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Reindexing...';
-        try {
-            const resp = await fetch('/api/reindex', { method: 'POST' });
-            if (resp.ok) {
-                this.innerHTML = '<span class="material-symbols-outlined text-sm">check</span> Reindex Complete';
-                loadSettings();
-            } else {
-                this.innerHTML = '<span class="material-symbols-outlined text-sm">error</span> Reindex Failed';
-            }
-        } catch (e) {
-            this.innerHTML = '<span class="material-symbols-outlined text-sm">error</span> Network Error';
-        }
-        setTimeout(() => {
-            this.disabled = false;
-            this.innerHTML = '<span class="material-symbols-outlined text-sm">refresh</span> Reindex Database';
-        }, 3000);
-    });
-
-    loadSettings();
+    window.settingsInit();
 </script>
 {% endblock %}

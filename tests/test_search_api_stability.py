@@ -64,3 +64,15 @@ def test_search_accepts_tempo_aliases_and_applies_offset(test_client):
     assert data["total"] == 2
     assert len(data["results"]) == 1
     assert data["results"][0]["metadata"]["bpm"] == 120
+
+
+def test_search_applies_web_filter_chips(test_client):
+    resp = test_client.get(
+        "/api/search",
+        params={"q": "*", "format": "flac", "brightness": "dark"},
+    )
+
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total"] == 1
+    assert data["results"][0]["file_name"] == "bass_deep.flac"

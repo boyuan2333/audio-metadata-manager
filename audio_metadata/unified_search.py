@@ -14,7 +14,6 @@ import warnings
 from pathlib import Path
 from typing import Any
 
-import audio_metadata.clap_embed as clap_embed
 from audio_metadata.search_router import analyze_query
 
 logger = logging.getLogger(__name__)
@@ -223,6 +222,8 @@ def _semantic_search(
         warnings.warn("Embeddings file missing – falling back to keyword search.", stacklevel=2)
         return _keyword_search(records, plan, top_k)
 
+    import audio_metadata.clap_embed as clap_embed
+
     if not clap_embed.check_clap_available():
         warnings.warn("CLAP not installed – falling back to keyword search.", stacklevel=2)
         return _keyword_search(records, plan, top_k)
@@ -279,6 +280,8 @@ def _hybrid_search(
             stacklevel=2,
         )
         return candidates[:top_k]
+
+    import audio_metadata.clap_embed as clap_embed
 
     if not clap_embed.check_clap_available():
         warnings.warn("CLAP not installed – returning keyword-only results.", stacklevel=2)
@@ -404,6 +407,7 @@ def _to_result(scored: dict[str, Any]) -> dict[str, Any]:
     path = _get_nested(rec, "source", "path") or rec.get("source_path", "")
 
     duration = _get_nested(rec, "technical", "duration_sec")
+    file_format = _get_nested(rec, "source", "file_format")
     bpm = _get_nested(rec, "features", "tempo_bpm")
     tags = _get_nested(rec, "retrieval", "tags") or []
     mood = _get_nested(rec, "retrieval", "mood")
@@ -413,6 +417,7 @@ def _to_result(scored: dict[str, Any]) -> dict[str, Any]:
 
     metadata: dict[str, Any] = {
         "duration": duration,
+        "format": file_format,
         "bpm": bpm,
         "tags": list(tags) if isinstance(tags, list) else [],
         "mood": mood,

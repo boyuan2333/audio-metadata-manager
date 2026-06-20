@@ -47,11 +47,13 @@ from web.api.report_api import router as report_router
 from web.api.search_api import router as search_router
 from web.api.audio_api import router as audio_router
 from web.api.sample_api import router as sample_router
+from web.api.settings_api import router as settings_router
 
 app.include_router(report_router, prefix="/api")
 app.include_router(search_router, prefix="/api")
 app.include_router(audio_router, prefix="/api")
 app.include_router(sample_router, prefix="/api")
+app.include_router(settings_router, prefix="/api")
 
 
 # ── Page routes ──────────────────────────────────────────────────────

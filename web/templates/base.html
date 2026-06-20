@@ -115,26 +115,26 @@
         <!-- Brand -->
         <div class="mb-xl px-sm">
             <h1 class="text-xl font-bold text-accent">AMM</h1>
-            <p class="text-xs font-medium text-text-secondary tracking-wider uppercase">Audio Metadata Manager</p>
+            <p class="text-xs font-medium text-text-secondary tracking-wider uppercase" data-i18n="app.subtitle">Audio Metadata Manager</p>
         </div>
 
         <!-- Navigation -->
         <nav class="flex-1 flex flex-col gap-xs">
             <a href="/" class="nav-link flex items-center gap-md px-md py-sm rounded-lg text-text-secondary hover:bg-bg-elevated transition-colors cursor-pointer {% if active_page == 'dashboard' %}active{% endif %}">
                 <span class="material-symbols-outlined">dashboard</span>
-                <span class="text-xs font-medium tracking-wider">Dashboard</span>
+                <span class="text-xs font-medium tracking-wider" data-i18n="nav.dashboard">Dashboard</span>
             </a>
             <a href="/library" class="nav-link flex items-center gap-md px-md py-sm rounded-lg text-text-secondary hover:bg-bg-elevated transition-colors cursor-pointer {% if active_page == 'library' %}active{% endif %}">
                 <span class="material-symbols-outlined">library_music</span>
-                <span class="text-xs font-medium tracking-wider">Library</span>
+                <span class="text-xs font-medium tracking-wider" data-i18n="nav.library">Library</span>
             </a>
             <a href="/editor" class="nav-link flex items-center gap-md px-md py-sm rounded-lg text-text-secondary hover:bg-bg-elevated transition-colors cursor-pointer {% if active_page == 'editor' %}active{% endif %}">
                 <span class="material-symbols-outlined">edit_note</span>
-                <span class="text-xs font-medium tracking-wider">Metadata Editor</span>
+                <span class="text-xs font-medium tracking-wider" data-i18n="nav.editor">Metadata Editor</span>
             </a>
             <a href="/settings" class="nav-link flex items-center gap-md px-md py-sm rounded-lg text-text-secondary hover:bg-bg-elevated transition-colors cursor-pointer {% if active_page == 'settings' %}active{% endif %}">
                 <span class="material-symbols-outlined">settings</span>
-                <span class="text-xs font-medium tracking-wider">Settings</span>
+                <span class="text-xs font-medium tracking-wider" data-i18n="nav.settings">Settings</span>
             </a>
         </nav>
 
@@ -149,12 +149,12 @@
         <!-- Top Bar with AI Search -->
         <header class="h-16 flex items-center justify-between px-lg border-b border-border-default bg-bg-surface shrink-0">
             <div class="flex items-center gap-md flex-1">
-                <h2 class="text-lg font-semibold text-text-primary">{% block page_title %}AMM{% endblock %}</h2>
+                <h2 class="text-lg font-semibold text-text-primary" {% block page_title_attrs %}{% endblock %}>{% block page_title %}AMM{% endblock %}</h2>
             </div>
             <!-- Global Search with AI Glow -->
             <div class="relative w-[480px]">
                 <span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-text-tertiary text-lg">search</span>
-                <input type="text" id="global-search" placeholder="Search tracks, tags, or ask in natural language..."
+                <input type="text" id="global-search" placeholder="Search tracks, tags, or ask in natural language..." data-i18n-placeholder="search.placeholder"
                     class="search-input w-full pl-12 pr-md py-md bg-bg-surface rounded-lg text-sm text-text-primary placeholder-text-tertiary focus:outline-none transition-all"/>
                 <kbd class="absolute right-md top-1/2 -translate-y-1/2 kbd-badge">⌘K</kbd>
             </div>

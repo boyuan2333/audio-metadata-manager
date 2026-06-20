@@ -34,6 +34,14 @@ def _matches_range(value: object, minimum: float | None, maximum: float | None) 
     return True
 
 
+def _matches_text(value: object, expected: str | None) -> bool:
+    if expected is None or expected.strip() == "":
+        return True
+    if not isinstance(value, str):
+        return False
+    return value.lower() == expected.strip().lower()
+
+
 @router.get("/search")
 async def search(
     q: str = Query(..., description="Search query"),
@@ -45,6 +53,8 @@ async def search(
     max_duration: str | None = Query(None),
     tempo_min: str | None = Query(None),
     tempo_max: str | None = Query(None),
+    format: str | None = Query(None),
+    brightness: str | None = Query(None),
 ):
     """Search the library with unified search."""
     from web_server import get_library_path
@@ -67,6 +77,8 @@ async def search(
             and _matches_range(
                 item.get("metadata", {}).get("duration"), duration_min, duration_max
             )
+            and _matches_text(item.get("metadata", {}).get("format"), format)
+            and _matches_text(item.get("metadata", {}).get("brightness"), brightness)
         ]
         return {
             "query": q,

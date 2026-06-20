@@ -2,6 +2,12 @@
 
 This note captures the next architecture direction for Audio Metadata Manager as it grows from local CLI scripts and a thin Web UI into a more stable application stack.
 
+Current product source of truth:
+
+- PRD: `docs/product/amm-retrieval-cockpit-prd.md`
+- Implementation plan: `docs/plans/2026-06-20-first-run-scan-workflow.md`
+- Current milestone: `CURRENT_GOAL.md`
+
 ## Current Shape
 
 AMM is currently centered on command modules that read a `library.json`, normalize records, perform an operation, and write or display results. The Web UI exists, but it is still a thin shell around file-backed behavior rather than a full application boundary.
@@ -14,6 +20,31 @@ Several project-wide issues are now visible:
 - The boundary between the Web UI and CLI is unclear, so behavior can diverge.
 - Audio paths currently depend on local absolute paths, which makes portability and desktop packaging harder.
 - There is no library config file yet, so a library has no durable place for root paths, scan settings, UI preferences, or derived cache locations.
+
+## Product North Star
+
+AMM should be treated as a local audio retrieval cockpit, not a generic metadata admin app. The primary user promise is: help a producer find the right sound fast while staying in a local, private, single-user workflow.
+
+The core loop is:
+
+1. Search by filename, tags, technical filters, or natural language.
+2. Audition results immediately.
+3. Decide whether a result is useful.
+4. Locate/use the source audio file in the user's production workflow.
+5. Correct tags or review metadata so the next search gets better.
+
+Web is a validation client for this loop. It is not the product center and it should not pull ownership away from the Core library. The Web UI is useful because CLI search cannot provide fast audition and browsing, but new UI work must prove the retrieval loop before it expands the application surface.
+
+## Agent Consistency Guardrails
+
+When different agents work on AMM, use these guardrails to keep decisions aligned:
+
+- Do not add new top-level Web pages until the main library/search page can complete the search -> audition -> decide -> locate/use -> correct loop against a real sample folder.
+- Maintain a single shared search contract for CLI, Web API, and future desktop clients. Today that means the Web API returns an envelope with `query`, `total`, `limit`, `offset`, and `results`, and each result uses `file_name`, `path`, `score`, and `metadata`.
+- Keep Web code as a Client. It may render, collect input, paginate, play audio, and show errors, but library loading, path resolution, search planning, filtering, mutation, and saving belong in Core services.
+- Prefer fixing the retrieval loop over polishing dashboards, reports, settings, visual themes, or desktop packaging.
+- Treat Tauri or Electron as packaging routes after the local search workflow is useful, not as a substitute for search quality.
+- When behavior can be shared by CLI and Web, add it to `audio_metadata.library` or another Core service first, then call it from both surfaces.
 
 ## Destination Layers
 
@@ -81,9 +112,12 @@ Path handling should support local absolute paths for today's single-user workfl
 
 ## Near-Term Sequence
 
-1. Add `audio_metadata.library` as the service boundary for load, normalize, save, and search.
-2. Move CLI commands to that service boundary one command group at a time.
-3. Move Web UI API routes to the same service calls and stabilize search state, pagination, sort, and filter contracts.
-4. Add `amm_config.json` support and migrate scan flows to use it.
-5. Build the desktop shell with Tauri or Electron plus FastAPI, keeping PySide6/Qt as the alternate route.
-6. Evolve the Client sample browser around left filters, center list, right details, and bottom player.
+1. Build the first-run setup flow: choose sample folder, create managed library, scan, then open Library.
+2. Add `audio_metadata.library` as the service boundary for managed library creation, summary, scan, load, normalize, save, and search.
+3. Add Web scan support through a stable `POST /api/scan` endpoint and Library-page scan control.
+4. Stabilize the current Web search contract so the Library page consumes `results[]` consistently and can audition returned paths.
+5. Remove or hide UI that asks users to manage `library.json`, database paths, dead rescan/reindex actions, or CLI-first setup.
+6. Move CLI commands to the Core service boundary one command group at a time.
+7. Add portable library configuration only after setup and scan are usable from the UI. Configuration must remain internal unless there is a clear user-facing workflow.
+8. Evolve the Client sample browser around left filters, center list, right details, and bottom player, without adding unrelated pages first.
+9. Build the desktop shell with Tauri or Electron plus FastAPI only after the local setup -> scan -> search -> audition workflow is useful.

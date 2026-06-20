@@ -11,6 +11,72 @@
 (function () {
     'use strict';
 
+    const I18N = {
+        en: {
+            'app.subtitle': 'Audio Metadata Manager',
+            'nav.dashboard': 'Dashboard',
+            'nav.library': 'Library',
+            'nav.editor': 'Metadata Editor',
+            'nav.settings': 'Settings',
+            'search.placeholder': 'Search tracks, tags, or ask in natural language...',
+            'settings.libraryConfig': 'Library Setup',
+            'settings.sampleDirectory': 'Sample Directory',
+            'settings.sampleDirectoryHelp': 'Choose the folder that contains your audio samples. AMM manages its own library file.',
+            'settings.save': 'Save',
+            'settings.createLibrary': 'Create Library',
+            'settings.copySamples': 'Copy Samples',
+            'settings.database': 'Advanced Storage',
+            'settings.storageHelp': 'This path is managed by AMM. You normally do not need to edit it.',
+            'settings.databasePath': 'Database Path',
+            'settings.totalRecords': 'Total Records',
+            'settings.lastScan': 'Last Scan',
+            'settings.language': 'Language',
+            'settings.interfaceLanguage': 'Interface Language',
+            'settings.appearance': 'Appearance',
+            'settings.darkTheme': 'Dark Theme',
+            'settings.darkThemeHelp': 'Toggle between dark and light mode'
+        },
+        'zh-Hans': {
+            'app.subtitle': '音频元数据管理器',
+            'nav.dashboard': '概览',
+            'nav.library': '曲库',
+            'nav.editor': '元数据编辑器',
+            'nav.settings': '设置',
+            'search.placeholder': '搜索音频、标签，或用自然语言提问...',
+            'settings.libraryConfig': '曲库设置',
+            'settings.sampleDirectory': '采样目录',
+            'settings.sampleDirectoryHelp': '选择包含音频采样的文件夹。AMM 会自动管理曲库文件。',
+            'settings.save': '保存',
+            'settings.createLibrary': '创建曲库',
+            'settings.copySamples': '复制采样目录',
+            'settings.database': '高级存储',
+            'settings.storageHelp': '这个路径由 AMM 自动管理，通常不需要手动编辑。',
+            'settings.databasePath': '数据库路径',
+            'settings.totalRecords': '记录总数',
+            'settings.lastScan': '上次扫描',
+            'settings.language': '语言',
+            'settings.interfaceLanguage': '界面语言',
+            'settings.appearance': '外观',
+            'settings.darkTheme': '深色主题',
+            'settings.darkThemeHelp': '切换深色和浅色模式'
+        }
+    };
+
+    function _applyLanguage(lang) {
+        var dictionary = I18N[lang] || I18N.en;
+        document.documentElement.lang = lang;
+        document.querySelectorAll('[data-i18n]').forEach(function (el) {
+            var key = el.getAttribute('data-i18n');
+            if (dictionary[key]) el.textContent = dictionary[key];
+        });
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) {
+            var key = el.getAttribute('data-i18n-placeholder');
+            if (dictionary[key]) el.setAttribute('placeholder', dictionary[key]);
+        });
+    }
+
+    _applyLanguage(localStorage.getItem('amm.language') || document.documentElement.lang || 'en');
+
     /* ================================================================
        1. GLOBAL SEARCH — base.html #global-search
        ================================================================ */
@@ -822,24 +888,98 @@
        7. SETTINGS — settingsInit()
        ================================================================ */
     function settingsInit() {
-        // Copy buttons already wired via inline onclick="copyToClipboard(...)" in template.
-        // Load settings data
+        var status = document.getElementById('settings-status');
+        var setStatus = function (msg, isError) {
+            if (!status) return;
+            status.textContent = msg || '';
+            status.classList.toggle('text-error', !!isError);
+            status.classList.toggle('text-success', !!msg && !isError);
+        };
+        var setValue = function (eid, val) {
+            var el = document.getElementById(eid);
+            if (!el) return;
+            if ('value' in el) el.value = val || '';
+            else el.textContent = val || '';
+        };
+
         _fetchJSON('/api/settings').then(function (data) {
-            var set = function (eid, val) {
-                var el = document.getElementById(eid);
-                if (el) el.textContent = val;
-            };
-            set('library-path', data.library_path || 'Not configured');
-            set('sample-dir', data.sample_dir || 'Not configured');
-            set('db-path', data.db_path || 'Not configured');
-            set('db-records', data.total_records != null ? data.total_records : '--');
-            set('last-scan', data.last_scan || 'Never');
+            setValue('sample-dir-input', data.sample_dir || '');
+            setValue('db-path', data.db_path || 'Not configured');
+            setValue('db-records', data.total_records != null ? data.total_records : '--');
+            setValue('last-scan', data.last_scan || 'Never');
         }).catch(function (err) {
             console.warn('Settings API not available:', err);
-            ['library-path', 'sample-dir'].forEach(function (id) {
-                var el = document.getElementById(id);
-                if (el) el.textContent = 'Unable to load';
+            setStatus('Unable to load settings', true);
+        });
+
+        var form = document.getElementById('settings-form');
+        if (form) {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                setStatus('Saving...', false);
+                fetch('/api/settings', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sample_dir: (document.getElementById('sample-dir-input') || {}).value || ''
+                    })
+                }).then(function (resp) {
+                    if (!resp.ok) throw new Error('Settings save failed');
+                    return resp.json();
+                }).then(function (data) {
+                    var settings = data.settings || {};
+                    setValue('sample-dir-input', settings.sample_dir || '');
+                    setValue('db-path', settings.db_path || 'Not configured');
+                    setValue('db-records', settings.total_records != null ? settings.total_records : '--');
+                    setValue('last-scan', settings.last_scan || 'Never');
+                    setStatus('Saved', false);
+                }).catch(function (err) {
+                    console.warn('Failed to save settings:', err);
+                    setStatus('Save failed', true);
+                });
             });
+        }
+
+        var createLibrary = document.getElementById('btn-create-library');
+        if (createLibrary) {
+            createLibrary.addEventListener('click', function () {
+                setStatus('Creating library...', false);
+                fetch('/api/settings/create-library', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        sample_dir: (document.getElementById('sample-dir-input') || {}).value || ''
+                    })
+                }).then(function (resp) {
+                    if (!resp.ok) throw new Error('Library creation failed');
+                    return resp.json();
+                }).then(function (data) {
+                    var settings = data.settings || {};
+                    setValue('sample-dir-input', settings.sample_dir || '');
+                    setValue('db-path', settings.db_path || 'Not configured');
+                    setValue('db-records', settings.total_records != null ? settings.total_records : '--');
+                    setValue('last-scan', settings.last_scan || 'Never');
+                    setStatus('Library ready', false);
+                }).catch(function (err) {
+                    console.warn('Failed to create library:', err);
+                    setStatus('Create failed', true);
+                });
+            });
+        }
+
+        var language = document.getElementById('settings-language');
+        if (language) {
+            var savedLanguage = localStorage.getItem('amm.language') || document.documentElement.lang || 'en';
+            language.value = savedLanguage;
+            _applyLanguage(savedLanguage);
+            language.addEventListener('change', function () {
+                localStorage.setItem('amm.language', language.value);
+                _applyLanguage(language.value);
+            });
+        }
+
+        document.getElementById('theme-toggle')?.addEventListener('click', function () {
+            document.documentElement.classList.toggle('dark');
         });
     }
 
@@ -847,7 +987,7 @@
     window.copyToClipboard = function (elementId) {
         var el = document.getElementById(elementId);
         if (!el) return;
-        var text = el.textContent;
+        var text = 'value' in el ? el.value : el.textContent;
         navigator.clipboard.writeText(text).then(function () {
             // Brief visual feedback — find the sibling button's icon
             var parent = el.closest('.flex');

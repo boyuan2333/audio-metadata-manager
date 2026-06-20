@@ -266,6 +266,7 @@ class TestInternalHelpers:
         assert result["path"] == "/audio/test.wav"
         assert result["file_name"] == "test.wav"
         assert result["score"] == 0.85
+        assert result["metadata"]["format"] == "wav"
         assert result["metadata"]["bpm"] == 120
         assert result["metadata"]["duration"] == 4.0
         assert "pad" in result["metadata"]["tags"]
